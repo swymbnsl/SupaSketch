@@ -6,3 +6,20 @@ body {
   background: #eef4f7;
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes move-horizontal-reverse {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -1280px 0;
+  }
+}
+@keyframes move-horizontal {
+  0% {
+    background-position: -1280px 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
