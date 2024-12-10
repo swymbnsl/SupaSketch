@@ -3,17 +3,48 @@
 import {
   generateSessionToken,
   storeSessionToken,
+  getSessionToken,
 } from "@/utils/sessionTokenFunctions";
 import { Plus, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 export default function Join() {
+  const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
 
   useEffect(() => {
     const sessionToken = generateSessionToken();
     storeSessionToken(sessionToken);
   }, []);
+
+  const handleCreateRoom = async () => {
+    try {
+      const response = await axios.post("/api/room", {
+        sessionToken: getSessionToken(),
+      });
+
+      toast.success("Room created successfully");
+      router.push("/sketch");
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    try {
+      const response = await axios.put("/api/room", {
+        roomCode,
+        sessionToken: getSessionToken(),
+      });
+      toast.success("Room joined successfully");
+      router.push("/sketch");
+    } catch (error) {
+      toast.error(error.response.data.error);
+    }
+  };
 
   return (
     <>
@@ -35,7 +66,10 @@ export default function Join() {
                 session
               </p>
             </div>
-            <button className="w-full bg-violet-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-violet-700">
+            <button
+              onClick={handleCreateRoom}
+              className="w-full bg-violet-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-violet-700"
+            >
               Create Room
             </button>
           </div>
@@ -58,6 +92,7 @@ export default function Join() {
                 className="w-full px-4 py-3 border border-zinc-200 bg-white text-zinc-900 rounded-lg focus:outline-none focus:border-violet-600"
               />
               <button
+                onClick={handleJoinRoom}
                 disabled={!roomCode}
                 className={`w-full px-6 py-3 rounded-lg font-semibold ${
                   roomCode
