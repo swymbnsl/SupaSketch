@@ -1,3 +1,5 @@
+"use client";
+
 import Navbar from "@/components/navbar";
 import { Bot, Database, Pencil, Trophy } from "lucide-react";
 import React from "react";
@@ -32,10 +34,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-white text-[#7b5cc5] px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 flex items-center justify-center gap-2">
-              <Pencil /> Start Drawing
-            </button>
-            <button className="border-2 border-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-[#7b5cc5] flex items-center justify-center gap-2">
-              <Trophy /> View Leaderboard
+              Join Now <span className="ml-2">→</span>
             </button>
           </div>
         </div>

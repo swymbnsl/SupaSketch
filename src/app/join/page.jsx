@@ -1,7 +1,20 @@
-import { Plus, Users } from "lucide-react";
-import React from "react";
+"use client";
 
-export default function JoinPage() {
+import {
+  generateSessionToken,
+  storeSessionToken,
+} from "@/utils/sessionTokenFunctions";
+import { Plus, Users } from "lucide-react";
+import React, { useEffect, useState } from "react";
+
+export default function Join() {
+  const [roomCode, setRoomCode] = useState("");
+
+  useEffect(() => {
+    const sessionToken = generateSessionToken();
+    storeSessionToken(sessionToken);
+  }, []);
+
   return (
     <>
       <div className="max-w-4xl flex flex-col items-center justify-center h-screen mx-auto py-20 px-6">
@@ -40,9 +53,18 @@ export default function JoinPage() {
               <input
                 type="text"
                 placeholder="Enter room code"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value)}
                 className="w-full px-4 py-3 border border-zinc-200 bg-white text-zinc-900 rounded-lg focus:outline-none focus:border-violet-600"
               />
-              <button className="w-full bg-violet-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-violet-700">
+              <button
+                disabled={!roomCode}
+                className={`w-full px-6 py-3 rounded-lg font-semibold ${
+                  roomCode
+                    ? "bg-violet-600 text-white hover:bg-violet-700"
+                    : "bg-violet-400 text-white"
+                }`}
+              >
                 Join Room
               </button>
             </div>
