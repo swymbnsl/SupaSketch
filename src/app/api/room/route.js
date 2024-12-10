@@ -92,3 +92,100 @@ export async function PUT(request) {
     return NextResponse.json({ error: "Failed to join room" }, { status: 500 });
   }
 }
+
+// Check if room exists
+export async function GET(request) {
+  try {
+    // Get room code from the URL search params
+    const { searchParams } = new URL(request.url);
+    const roomCode = searchParams.get("roomCode");
+
+    if (!roomCode) {
+      return NextResponse.json(
+        { error: "Room code is required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if room exists in database
+    const { data, error } = await supabase
+      .from("rooms")
+      .select()
+      .eq("room_code", roomCode)
+      .single();
+
+    if (error || !data) {
+      return NextResponse.json({ exists: false }, { status: 200 });
+    }
+
+    return NextResponse.json({ exists: true }, { status: 200 });
+  } catch (err) {
+    console.error("Error checking room:", err.message);
+    return NextResponse.json(
+      { error: "Failed to check room" },
+      { status: 500 }
+    );
+  }
+}
+
+// Update user status
+export async function PATCH(request) {
+  try {
+    const { room_id, status, sessionToken } = await request.json();
+
+    if (!sessionToken) {
+      return NextResponse.json(
+        { error: "Session token is required" },
+        { status: 401 }
+      );
+    }
+
+    if (!room_id || !status) {
+      return NextResponse.json(
+        { error: "Room ID and status are required" },
+        { status: 400 }
+      );
+    }
+
+    // First, get the room to check user permissions
+    const { data: roomData, error: fetchError } = await supabase
+      .from("rooms")
+      .select()
+      .eq("room_code", room_id)
+      .single();
+
+    if (fetchError || !roomData) {
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    }
+
+    // Determine which user is making the request
+    let updateData = {};
+    if (roomData.user1_id === sessionToken) {
+      updateData = { user1_status: status };
+    } else if (roomData.user2_id === sessionToken) {
+      updateData = { user2_status: status };
+    } else {
+      return NextResponse.json(
+        { error: "User not authorized for this room" },
+        { status: 403 }
+      );
+    }
+
+    // Update the room with the new status
+    const { data, error } = await supabase
+      .from("rooms")
+      .update(updateData)
+      .eq("room_code", room_id)
+      .select();
+
+    if (error) throw error;
+
+    return NextResponse.json({ room: data[0] }, { status: 200 });
+  } catch (err) {
+    console.error("Error updating user status:", err.message);
+    return NextResponse.json(
+      { error: "Failed to update user status" },
+      { status: 500 }
+    );
+  }
+}

@@ -2,8 +2,65 @@
 
 import { Tldraw } from "tldraw";
 import "tldraw/tldraw.css";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { getSessionToken } from "@/utils/sessionTokenFunctions";
+import axios from "axios";
 
 export default function App() {
+  const searchParams = useSearchParams();
+  const [isValidRoom, setIsValidRoom] = useState(false);
+  const roomId = searchParams.get("roomCode");
+
+  useEffect(() => {
+    // Function to validate room
+    const validateRoom = async () => {
+      if (!roomId) {
+        setIsValidRoom(false);
+        return;
+      }
+      try {
+        const response = await fetch(`/api/room?roomCode=${roomId}`);
+        const data = await response.json();
+
+        if (data.exists) {
+          setIsValidRoom(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error validating room:", error);
+        setIsValidRoom(false);
+        return;
+      }
+    };
+
+    validateRoom();
+
+    const updateUserStatus = async () => {
+      try {
+        const response = await axios.patch("/api/room", {
+          room_id: roomId,
+          status: "joined",
+          sessionToken: getSessionToken(),
+        });
+      } catch (error) {
+        console.error("Error updating user status:", error);
+      }
+    };
+
+    updateUserStatus();
+  }, [roomId]);
+
+  if (!isValidRoom) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-red-500 font-semibold">
+          Invalid room ID
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-[1600px] mx-auto  min-h-screen">
       {/* Page Title */}
