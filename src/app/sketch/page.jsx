@@ -6,11 +6,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import axios from "axios";
+import supabase from "@/lib/supabase";
 
 export default function App() {
   const searchParams = useSearchParams();
   const [isValidRoom, setIsValidRoom] = useState(false);
   const roomId = searchParams.get("roomCode");
+  const [otherUserStatus, setOtherUserStatus] = useState(null);
+  const sessionToken = getSessionToken();
 
   useEffect(() => {
     // Function to validate room
@@ -51,6 +54,60 @@ export default function App() {
 
     updateUserStatus();
   }, [roomId]);
+
+  useEffect(() => {
+    if (!roomId || !isValidRoom || !sessionToken) return;
+
+    // Set up real-time presence channel
+    const channel = supabase.channel(`room:${roomId}`, {
+      config: {
+        presence: {
+          key: sessionToken,
+        },
+      },
+    });
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const presenceState = channel.presenceState();
+        console.log("Presence state:", presenceState);
+
+        // Get all presence entries
+        const allPresences = Object.values(presenceState).flat();
+
+        // Filter out current user's presence
+        const otherUsers = allPresences.filter((p) => p.key !== sessionToken);
+
+        // Check if there are any other users
+        const otherUserPresent = otherUsers.length > 0;
+
+        console.log("Other users:", otherUsers);
+        console.log("Other user present:", otherUserPresent);
+
+        setOtherUserStatus(otherUserPresent ? "connected" : "disconnected");
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({
+            online_at: new Date().toISOString(),
+            key: sessionToken,
+          });
+        }
+      });
+
+    // Cleanup
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [roomId, isValidRoom, sessionToken]);
+
+  // Update status display in the UI
+  const StatusIndicator = () => (
+    <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5 self-start">
+      <span className="w-2 h-2 bg-white rounded-full"></span>
+      Player 2: {otherUserStatus || "Waiting..."}
+    </div>
+  );
 
   if (!isValidRoom) {
     return (
@@ -98,10 +155,7 @@ export default function App() {
             </div>
             <div className="flex flex-col gap-4">
               <div className="text-2xl font-semibold text-slate-700">2:00</div>
-              <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5 self-start">
-                <span className="w-2 h-2 bg-white rounded-full"></span>
-                Player 2: Connected
-              </div>
+              <StatusIndicator />
             </div>
           </div>
 

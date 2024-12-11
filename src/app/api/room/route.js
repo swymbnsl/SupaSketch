@@ -77,14 +77,23 @@ export async function PUT(request) {
       );
     }
 
-    // Update room
+    // Update room with user2 and set initial status
     const { data, error } = await supabase
       .from("rooms")
-      .update({ user2_id: sessionToken })
+      .update({
+        user2_id: sessionToken,
+        user2_status: "connected", // Set initial status
+      })
       .eq("room_code", roomCode)
       .select();
 
     if (error) throw error;
+
+    // Broadcast presence update
+    await supabase
+      .from("rooms")
+      .update({ last_presence_update: new Date().toISOString() })
+      .eq("room_code", roomCode);
 
     return NextResponse.json({ room: data[0] }, { status: 200 });
   } catch (err) {
