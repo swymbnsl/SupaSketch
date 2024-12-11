@@ -20,10 +20,11 @@ export default function App() {
         return;
       }
       try {
-        const response = await fetch(`/api/room?roomCode=${roomId}`);
-        const data = await response.json();
+        const response = await axios.get(`/api/room`, {
+          params: { roomCode: roomId },
+        });
 
-        if (data.exists) {
+        if (response.data.exists) {
           setIsValidRoom(true);
           return;
         }

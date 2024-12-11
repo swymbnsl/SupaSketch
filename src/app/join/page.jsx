@@ -25,9 +25,9 @@ export default function Join() {
       const response = await axios.post("/api/room", {
         sessionToken: getSessionToken(),
       });
-
+      console.log(response);
       toast.success("Room created successfully");
-      router.push("/sketch");
+      router.push(`/sketch?roomCode=${response.data.room.room_code}`);
     } catch (error) {
       toast.error(error.response.data.error);
     }
