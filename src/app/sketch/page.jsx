@@ -122,6 +122,33 @@ export default function App() {
     };
   }, [roomId, isValidRoom, sessionToken, isReady]);
 
+  useEffect(() => {
+    if (!roomId || !isValidRoom || !sessionToken) return;
+
+    // Subscribe to room changes
+    const roomSubscription = supabase
+      .channel(`room-updates-${roomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "rooms",
+          filter: `room_code=eq.${roomId}`,
+        },
+        (payload) => {
+          if (payload.new.game_started) {
+            setGameStarted(true);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      roomSubscription.unsubscribe();
+    };
+  }, [roomId, isValidRoom, sessionToken]);
+
   const handleReady = async () => {
     try {
       await axios.patch("/api/room", {
@@ -135,8 +162,18 @@ export default function App() {
     }
   };
 
-  const handleStart = () => {
-    setGameStarted(true);
+  const handleStart = async () => {
+    try {
+      await axios.patch("/api/room", {
+        room_id: roomId,
+        status: "ready",
+        sessionToken: sessionToken,
+        gameStarted: true,
+      });
+      setGameStarted(true);
+    } catch (error) {
+      console.error("Error starting game:", error);
+    }
   };
 
   // Update status display in the UI

@@ -139,7 +139,7 @@ export async function GET(request) {
 // Update user status
 export async function PATCH(request) {
   try {
-    const { room_id, status, sessionToken } = await request.json();
+    const { room_id, status, sessionToken, gameStarted } = await request.json();
 
     if (!sessionToken) {
       return NextResponse.json(
@@ -166,10 +166,13 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    // Determine which user is making the request
+    // Determine which user is making the request and what to update
     let updateData = {};
     if (roomData.user1_id === sessionToken) {
-      updateData = { user1_status: status };
+      updateData =
+        gameStarted !== undefined
+          ? { user1_status: status, game_started: gameStarted }
+          : { user1_status: status };
     } else if (roomData.user2_id === sessionToken) {
       updateData = { user2_status: status };
     } else {
