@@ -14,6 +14,9 @@ export default function App() {
   const roomId = searchParams.get("roomCode");
   const [otherUserStatus, setOtherUserStatus] = useState(null);
   const sessionToken = getSessionToken();
+  const [gameStarted, setGameStarted] = useState(false);
+  const [isCreator, setIsCreator] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     // Function to validate room
@@ -56,9 +59,29 @@ export default function App() {
   }, [roomId]);
 
   useEffect(() => {
+    // Function to check if user is creator
+    const checkCreator = async () => {
+      try {
+        const response = await axios.get(`/api/room`, {
+          params: {
+            roomCode: roomId,
+            sessionToken: sessionToken,
+          },
+        });
+        setIsCreator(response.data.isCreator);
+      } catch (error) {
+        console.error("Error checking creator status:", error);
+      }
+    };
+
+    if (roomId && sessionToken) {
+      checkCreator();
+    }
+  }, [roomId, sessionToken]);
+
+  useEffect(() => {
     if (!roomId || !isValidRoom || !sessionToken) return;
 
-    // Set up real-time presence channel
     const channel = supabase.channel(`room:${roomId}`, {
       config: {
         presence: {
@@ -70,36 +93,51 @@ export default function App() {
     channel
       .on("presence", { event: "sync" }, () => {
         const presenceState = channel.presenceState();
-        console.log("Presence state:", presenceState);
-
-        // Get all presence entries
         const allPresences = Object.values(presenceState).flat();
-
-        // Filter out current user's presence
         const otherUsers = allPresences.filter((p) => p.key !== sessionToken);
-
-        // Check if there are any other users
         const otherUserPresent = otherUsers.length > 0;
 
-        console.log("Other users:", otherUsers);
-        console.log("Other user present:", otherUserPresent);
-
-        setOtherUserStatus(otherUserPresent ? "connected" : "disconnected");
+        // Check if other user is ready
+        const otherUserReady = otherUsers.some((user) => user.ready === true);
+        setOtherUserStatus(
+          otherUserPresent
+            ? otherUserReady
+              ? "ready"
+              : "connected"
+            : "disconnected"
+        );
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({
             online_at: new Date().toISOString(),
             key: sessionToken,
+            ready: isReady,
           });
         }
       });
 
-    // Cleanup
     return () => {
       channel.unsubscribe();
     };
-  }, [roomId, isValidRoom, sessionToken]);
+  }, [roomId, isValidRoom, sessionToken, isReady]);
+
+  const handleReady = async () => {
+    try {
+      await axios.patch("/api/room", {
+        room_id: roomId,
+        status: "ready",
+        sessionToken: sessionToken,
+      });
+      setIsReady(true);
+    } catch (error) {
+      console.error("Error updating ready status:", error);
+    }
+  };
+
+  const handleStart = () => {
+    setGameStarted(true);
+  };
 
   // Update status display in the UI
   const StatusIndicator = () => (
@@ -110,10 +148,37 @@ export default function App() {
   );
 
   if (!isValidRoom) {
+    return <div>Invalid room ID</div>;
+  }
+
+  if (!gameStarted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-500 font-semibold">
-          Invalid room ID
+        <div className="p-8 bg-white rounded-xl shadow-sm border border-slate-200 max-w-md w-full">
+          <h2 className="text-2xl font-bold mb-6 text-slate-900">
+            Waiting Room
+          </h2>
+          <StatusIndicator />
+
+          {isCreator ? (
+            <button
+              className="w-full mt-6 px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              disabled={otherUserStatus !== "ready"}
+              onClick={handleStart}
+            >
+              Start Game
+            </button>
+          ) : (
+            <button
+              className={`w-full mt-6 px-6 py-4 ${
+                isReady ? "bg-green-500" : "bg-blue-500"
+              } text-white rounded-xl font-semibold transition-all hover:opacity-90`}
+              onClick={handleReady}
+              disabled={isReady}
+            >
+              {isReady ? "Ready!" : "Ready Up"}
+            </button>
+          )}
         </div>
       </div>
     );

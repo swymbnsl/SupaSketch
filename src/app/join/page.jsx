@@ -40,7 +40,7 @@ export default function Join() {
         sessionToken: getSessionToken(),
       });
       toast.success("Room joined successfully");
-      router.push("/sketch");
+      router.push(`/sketch?roomCode=${roomCode}`);
     } catch (error) {
       toast.error(error.response.data.error);
     }

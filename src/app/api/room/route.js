@@ -77,23 +77,14 @@ export async function PUT(request) {
       );
     }
 
-    // Update room with user2 and set initial status
+    // Update room
     const { data, error } = await supabase
       .from("rooms")
-      .update({
-        user2_id: sessionToken,
-        user2_status: "connected", // Set initial status
-      })
+      .update({ user2_id: sessionToken })
       .eq("room_code", roomCode)
       .select();
 
     if (error) throw error;
-
-    // Broadcast presence update
-    await supabase
-      .from("rooms")
-      .update({ last_presence_update: new Date().toISOString() })
-      .eq("room_code", roomCode);
 
     return NextResponse.json({ room: data[0] }, { status: 200 });
   } catch (err) {
@@ -105,9 +96,9 @@ export async function PUT(request) {
 // Check if room exists
 export async function GET(request) {
   try {
-    // Get room code from the URL search params
     const { searchParams } = new URL(request.url);
     const roomCode = searchParams.get("roomCode");
+    const sessionToken = searchParams.get("sessionToken");
 
     if (!roomCode) {
       return NextResponse.json(
@@ -116,7 +107,6 @@ export async function GET(request) {
       );
     }
 
-    // Check if room exists in database
     const { data, error } = await supabase
       .from("rooms")
       .select()
@@ -127,7 +117,16 @@ export async function GET(request) {
       return NextResponse.json({ exists: false }, { status: 200 });
     }
 
-    return NextResponse.json({ exists: true }, { status: 200 });
+    // Check if the requesting user is the creator
+    const isCreator = data.user1_id === sessionToken;
+
+    return NextResponse.json(
+      {
+        exists: true,
+        isCreator: isCreator,
+      },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("Error checking room:", err.message);
     return NextResponse.json(
