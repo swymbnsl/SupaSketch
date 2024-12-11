@@ -235,7 +235,8 @@ export default function App() {
         {/* Main Canvas Area */}
         <div className="flex-[0_0_65%] relative border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
           <Tldraw
-            persistenceKey="example"
+            acceptedImageMimeTypes={[]}
+            acceptedVideoMimeTypes={[]}
             options={{ maxPages: 1 }}
             components={{
               ContextMenu: null,
