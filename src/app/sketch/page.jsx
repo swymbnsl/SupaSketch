@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Tldraw, exportToBlob } from "tldraw";
 import "tldraw/tldraw.css";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -8,7 +9,7 @@ import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import axios from "axios";
 import supabase from "@/lib/supabase";
 
-export default function App() {
+function SketchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isValidRoom, setIsValidRoom] = useState(false);
@@ -424,7 +425,7 @@ export default function App() {
         <span className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
           Prompt
         </span>
-        Draw: "{prompt || "Loading prompt..."}"
+        Draw: &quot;{prompt || "Loading prompt..."}&quot;
       </h1>
 
       <div className="flex gap-7 h-[calc(100vh-120px)]">
@@ -498,5 +499,19 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Sketch() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-2xl font-semibold">Loading sketch pad...</div>
+        </div>
+      }
+    >
+      <SketchContent />
+    </Suspense>
   );
 }

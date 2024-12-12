@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/navbar";
 import { Bot, Database, Pencil, Trophy } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 export default function Home() {
@@ -33,9 +34,12 @@ export default function Home() {
             artificial intelligence, powered by Supabase
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-[#7b5cc5] px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 flex items-center justify-center gap-2">
+            <Link
+              href="/join"
+              className="bg-white text-[#7b5cc5] px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 flex items-center justify-center gap-2"
+            >
               Join Now <span className="ml-2">→</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>

@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import supabase from "@/lib/supabase";
 import toast from "react-hot-toast";
 
-export default function Results() {
+function ResultsContent() {
   const searchParams = useSearchParams();
   const roomId = searchParams.get("roomCode");
   const [results, setResults] = useState(null);
@@ -152,7 +153,7 @@ export default function Results() {
       </h1>
 
       <div className="text-xl text-center mb-8">
-        Prompt: "{results?.prompt || "Loading prompt..."}"
+        Prompt: &quot;{results?.prompt || "Loading prompt..."}&quot;
       </div>
 
       <div className="grid grid-cols-2 gap-8 mb-12">
@@ -190,5 +191,13 @@ export default function Results() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Results() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResultsContent />
+    </Suspense>
   );
 }
