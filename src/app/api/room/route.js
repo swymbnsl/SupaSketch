@@ -139,7 +139,14 @@ export async function GET(request) {
 // Update user status
 export async function PATCH(request) {
   try {
-    const { room_id, status, sessionToken, gameStarted } = await request.json();
+    const {
+      room_id,
+      status,
+      sessionToken,
+      gameStarted,
+      gameStartTime,
+      imageUrl,
+    } = await request.json();
 
     if (!sessionToken) {
       return NextResponse.json(
@@ -169,12 +176,19 @@ export async function PATCH(request) {
     // Determine which user is making the request and what to update
     let updateData = {};
     if (roomData.user1_id === sessionToken) {
-      updateData =
-        gameStarted !== undefined
-          ? { user1_status: status, game_started: gameStarted }
-          : { user1_status: status };
+      updateData = {
+        user1_status: status,
+        ...(gameStarted !== undefined && {
+          game_started: gameStarted,
+          game_start_time: gameStartTime,
+        }),
+        ...(imageUrl && { drawing1_url: imageUrl }),
+      };
     } else if (roomData.user2_id === sessionToken) {
-      updateData = { user2_status: status };
+      updateData = {
+        user2_status: status,
+        ...(imageUrl && { drawing2_url: imageUrl }),
+      };
     } else {
       return NextResponse.json(
         { error: "User not authorized for this room" },

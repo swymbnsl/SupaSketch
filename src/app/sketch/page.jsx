@@ -18,6 +18,11 @@ export default function App() {
   const [isCreator, setIsCreator] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [editor, setEditor] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(120);
+  const [gameStartTime, setGameStartTime] = useState(null);
+  const [otherPlayerSubmitted, setOtherPlayerSubmitted] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [gameEnded, setGameEnded] = useState(false);
 
   useEffect(() => {
     // Function to validate room
@@ -126,7 +131,7 @@ export default function App() {
   useEffect(() => {
     if (!roomId || !isValidRoom || !sessionToken) return;
 
-    // Subscribe to room changes
+    // Subscribe to room updates (game start and submissions)
     const roomSubscription = supabase
       .channel(`room-updates-${roomId}`)
       .on(
@@ -138,8 +143,29 @@ export default function App() {
           filter: `room_code=eq.${roomId}`,
         },
         (payload) => {
-          if (payload.new.game_started) {
+          // Handle game start
+          if (payload.new.game_started && payload.new.game_start_time) {
+            setGameStartTime(new Date(payload.new.game_start_time));
             setGameStarted(true);
+          }
+
+          // Handle submissions
+          const isUser1 = payload.new.user1_id === sessionToken;
+          const drawing1Submitted = payload.new.drawing1_url !== null;
+          const drawing2Submitted = payload.new.drawing2_url !== null;
+
+          // Update submission states
+          if (isUser1) {
+            setOtherPlayerSubmitted(drawing2Submitted);
+            setHasSubmitted(drawing1Submitted);
+          } else {
+            setOtherPlayerSubmitted(drawing1Submitted);
+            setHasSubmitted(drawing2Submitted);
+          }
+
+          // Check if both players have submitted
+          if (drawing1Submitted && drawing2Submitted) {
+            setGameEnded(true);
           }
         }
       )
@@ -149,6 +175,26 @@ export default function App() {
       roomSubscription.unsubscribe();
     };
   }, [roomId, isValidRoom, sessionToken]);
+
+  // Synced timer effect
+  useEffect(() => {
+    if (!gameStartTime || gameEnded) return;
+
+    const timer = setInterval(() => {
+      const now = new Date();
+      const elapsedSeconds = Math.floor((now - gameStartTime) / 1000);
+      const remainingSeconds = Math.max(120 - elapsedSeconds, 0);
+
+      if (remainingSeconds === 0) {
+        clearInterval(timer);
+        setGameEnded(true);
+      }
+
+      setTimeLeft(remainingSeconds);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameStartTime, gameEnded]);
 
   const handleReady = async () => {
     try {
@@ -165,13 +211,16 @@ export default function App() {
 
   const handleStart = async () => {
     try {
+      const gameStartTime = new Date().toISOString();
       await axios.patch("/api/room", {
         room_id: roomId,
         status: "ready",
         sessionToken: sessionToken,
         gameStarted: true,
+        gameStartTime: gameStartTime,
       });
       setGameStarted(true);
+      setGameStartTime(new Date(gameStartTime));
     } catch (error) {
       console.error("Error starting game:", error);
     }
@@ -203,7 +252,7 @@ export default function App() {
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
-        .from("drawings") // Make sure this matches your bucket name
+        .from("drawings")
         .upload(fileName, blob, {
           contentType: "image/png",
         });
@@ -223,11 +272,18 @@ export default function App() {
         imageUrl: publicUrl,
       });
 
+      setHasSubmitted(true);
       alert("Drawing submitted successfully!");
     } catch (error) {
       console.error("Error submitting drawing:", error);
       alert("Failed to submit drawing. Please try again.");
     }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Update status display in the UI
@@ -276,7 +332,7 @@ export default function App() {
   }
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto  min-h-screen">
+    <div className="p-8 max-w-[1600px] mx-auto min-h-screen">
       {/* Page Title */}
       <h1 className="text-2xl font-bold mb-7 text-slate-900 flex items-center gap-3">
         <span className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
@@ -312,8 +368,28 @@ export default function App() {
               <span className="text-blue-500">●</span> Game Status
             </div>
             <div className="flex flex-col gap-4">
-              <div className="text-2xl font-semibold text-slate-700">2:00</div>
+              {gameEnded ? (
+                <div className="text-2xl font-semibold text-red-500">
+                  Game Ended!
+                </div>
+              ) : (
+                <div className="text-2xl font-semibold text-slate-700">
+                  {formatTime(timeLeft)}
+                </div>
+              )}
               <StatusIndicator />
+              <div className="flex flex-col gap-2">
+                {hasSubmitted && (
+                  <div className="text-green-500 font-medium">
+                    ✓ You have submitted your drawing
+                  </div>
+                )}
+                {otherPlayerSubmitted && (
+                  <div className="text-blue-500 font-medium">
+                    ✓ Other player has submitted their drawing
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -322,10 +398,14 @@ export default function App() {
             <button
               className="px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 hover:-translate-y-0.5 shadow-sm shadow-blue-500/30"
               onClick={handleSubmitDrawing}
+              disabled={hasSubmitted || gameEnded}
             >
-              Submit Drawing
+              {hasSubmitted ? "Drawing Submitted" : "Submit Drawing"}
             </button>
-            <button className="px-6 py-4 bg-white text-red-500 border border-red-200 rounded-xl font-semibold transition-all hover:bg-red-500 hover:text-white hover:-translate-y-0.5">
+            <button
+              className="px-6 py-4 bg-white text-red-500 border border-red-200 rounded-xl font-semibold transition-all hover:bg-red-500 hover:text-white hover:-translate-y-0.5"
+              disabled={gameEnded}
+            >
               Abort Game
             </button>
           </div>
