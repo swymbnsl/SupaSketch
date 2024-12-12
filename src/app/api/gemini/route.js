@@ -10,7 +10,7 @@ export async function POST(request) {
 
     if (action === "generate_prompt") {
       const prompt =
-        "Generate a funny and slightly sarcastic drawing prompt that two players need to draw. Make it challenging but possible to draw in 2 minutes. Format: just the prompt text, nothing else.";
+        "Create a fun and very simple drawing prompt that players can draw in 2 minutes. Make it easy to understand and a bit funny. Just write the prompt itself, nothing else.";
 
       const result = await model.generateContent(prompt);
       const promptText = result.response.text();
@@ -36,21 +36,27 @@ export async function POST(request) {
         },
       };
 
-      const promptText = `You are a sarcastic art critic judging a 2-minute drawing competition. 
-      The original drawing prompt was: "${images.prompt}"
+      const promptText = `You're a friendly art judge looking at drawings from a 2-minute drawing game. 
+      The players were asked to draw: "${images.prompt}"
       
-      Compare these two drawings and:
-      1. Determine the winner based on artistic merit, creativity, and most importantly, how well they followed the prompt
-      2. Provide a brief, funny critique of both drawings
-      3. For the losing drawing, provide a savage (but lighthearted) roast focusing especially on how well (or poorly) it matches the original prompt. If the drawing is completely off-topic from the prompt, make sure to point that out in your roast.
+      Important judging rules:
+      1. Text-only submissions should not be considered valid drawings
+      2. Simple stick figures and basic drawings are okay - this is a quick drawing game
+      3. The drawing should attempt to illustrate the prompt, not just write it
+      4. If both submissions are text-only, pick the one with better presentation
       
-      Format your response as JSON with these fields:
+      Please:
+      1. Pick which drawing better matches the prompt and shows more effort in actually drawing
+      2. Give a specific comment about what you see in each drawing
+      3. Make a playful joke about the losing drawing, especially if it's just text instead of a drawing
+      
+      Write your response as JSON like this:
       {
         "winner": "1" or "2",
-        "critique1": "critique of drawing 1",
-        "critique2": "critique of drawing 2",
-        "roast": "sarcastic roast of the losing drawing, emphasizing any mismatch with the prompt",
-        "prompt": "the original prompt"
+        "critique1": "your comment about what drawing 1 actually shows",
+        "critique2": "your comment about what drawing 2 actually shows",
+        "roast": "your friendly joke about the losing drawing",
+        "prompt": "what they were asked to draw"
       }`;
 
       try {
