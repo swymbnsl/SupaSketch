@@ -1,9 +1,27 @@
 import supabase from "@/lib/supabase";
 import { NextResponse } from "next/server";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Helper function (consider moving to utilities)
 const generateRoomCode = () =>
   Math.random().toString(36).substring(2, 8).toUpperCase();
+
+// Helper function to generate prompt using Gemini
+async function generatePrompt() {
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const prompt =
+    "Generate a funny and slightly sarcastic drawing prompt that two players need to draw. Make it challenging but possible to draw in 2 minutes. Format: just the prompt text, nothing else.";
+
+  try {
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    console.error("Error generating prompt:", error);
+    throw error;
+  }
+}
 
 // Create room
 export async function POST(request) {
@@ -16,7 +34,10 @@ export async function POST(request) {
       );
     }
 
+    // Generate prompt first
+    const drawingPrompt = await generatePrompt();
     const roomCode = generateRoomCode();
+
     const { data, error } = await supabase
       .from("rooms")
       .insert({
@@ -26,6 +47,7 @@ export async function POST(request) {
         drawing2_url: null,
         evaluation_status: "pending",
         room_code: roomCode,
+        prompt: drawingPrompt, // Store the prompt during room creation
       })
       .select();
 
@@ -205,7 +227,13 @@ export async function PATCH(request) {
 
     if (error) throw error;
 
-    return NextResponse.json({ room: data[0] }, { status: 200 });
+    return NextResponse.json(
+      {
+        room: data[0],
+        prompt: roomData.prompt, // Include prompt in response
+      },
+      { status: 200 }
+    );
   } catch (err) {
     console.error("Error updating user status:", err.message);
     return NextResponse.json(

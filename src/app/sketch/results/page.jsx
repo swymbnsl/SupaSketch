@@ -84,13 +84,15 @@ export default function Results() {
                       : roomData.user2_id,
                 })
                 .eq("room_code", roomId);
-
-              if (updateError) throw updateError;
+              if (updateError) {
+                throw new Error("Failed to update room with judgment");
+              }
 
               setResults(response.data);
             } catch (error) {
               toast.error("Failed to get AI judgment. Please try refreshing.");
               console.error("Gemini API error:", error);
+              setResults(null); // Reset results state on error
             }
           } else {
             setResults(roomData.judgment);
