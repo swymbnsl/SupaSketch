@@ -176,7 +176,7 @@ export default function App() {
     };
   }, [roomId, isValidRoom, sessionToken]);
 
-  // Synced timer effect
+  // Synced timer effect with auto-submission
   useEffect(() => {
     if (!gameStartTime || gameEnded) return;
 
@@ -188,13 +188,63 @@ export default function App() {
       if (remainingSeconds === 0) {
         clearInterval(timer);
         setGameEnded(true);
+        // Auto-submit if haven't submitted yet and editor is available
+        if (!hasSubmitted && editor) {
+          handleAutoSubmit();
+        }
       }
 
       setTimeLeft(remainingSeconds);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameStartTime, gameEnded]);
+  }, [gameStartTime, gameEnded, hasSubmitted, editor]);
+
+  // Modified auto-submit function
+  const handleAutoSubmit = async () => {
+    if (!editor) return;
+
+    try {
+      const shapeIds = editor.getCurrentPageShapeIds();
+
+      // Export canvas to blob (even if empty)
+      const blob = await exportToBlob({
+        editor,
+        ids: [...shapeIds],
+        format: "png",
+        opts: { background: true },
+      });
+
+      // Create file name with room ID and timestamp
+      const fileName = `${roomId}_${Date.now()}_timeout.png`;
+
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from("drawings")
+        .upload(fileName, blob, {
+          contentType: "image/png",
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("drawings").getPublicUrl(fileName);
+
+      // Update database with image URL and status
+      await axios.patch("/api/room", {
+        room_id: roomId,
+        sessionToken: sessionToken,
+        status: "auto_submitted",
+        imageUrl: publicUrl,
+      });
+
+      setHasSubmitted(true);
+    } catch (error) {
+      console.error("Error auto-submitting drawing:", error);
+    }
+  };
 
   const handleReady = async () => {
     try {
