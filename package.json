@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.47.3",
     "axios": "^1.7.9",
     "lucide-react": "^0.468.0",

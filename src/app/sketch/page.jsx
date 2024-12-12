@@ -2,7 +2,7 @@
 
 import { Tldraw, exportToBlob } from "tldraw";
 import "tldraw/tldraw.css";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import axios from "axios";
@@ -10,6 +10,7 @@ import supabase from "@/lib/supabase";
 
 export default function App() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [isValidRoom, setIsValidRoom] = useState(false);
   const roomId = searchParams.get("roomCode");
   const [otherUserStatus, setOtherUserStatus] = useState(null);
@@ -23,6 +24,7 @@ export default function App() {
   const [otherPlayerSubmitted, setOtherPlayerSubmitted] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
     // Function to validate room
@@ -131,7 +133,27 @@ export default function App() {
   useEffect(() => {
     if (!roomId || !isValidRoom || !sessionToken) return;
 
-    // Subscribe to room updates (game start and submissions)
+    // Get initial room data including prompt
+    const fetchRoomData = async () => {
+      try {
+        const { data: roomData, error } = await supabase
+          .from("rooms")
+          .select("*")
+          .eq("room_code", roomId)
+          .single();
+
+        if (error) throw error;
+        if (roomData.prompt) {
+          setPrompt(roomData.prompt);
+        }
+      } catch (error) {
+        console.error("Error fetching room data:", error);
+      }
+    };
+
+    fetchRoomData();
+
+    // Subscribe to room updates
     const roomSubscription = supabase
       .channel(`room-updates-${roomId}`)
       .on(
@@ -143,6 +165,10 @@ export default function App() {
           filter: `room_code=eq.${roomId}`,
         },
         (payload) => {
+          // Update prompt when it changes
+          if (payload.new.prompt) {
+            setPrompt(payload.new.prompt);
+          }
           // Handle game start
           if (payload.new.game_started && payload.new.game_start_time) {
             setGameStartTime(new Date(payload.new.game_start_time));
@@ -166,6 +192,7 @@ export default function App() {
           // Check if both players have submitted
           if (drawing1Submitted && drawing2Submitted) {
             setGameEnded(true);
+            router.push(`/sketch/results?roomCode=${roomId}`);
           }
         }
       )
@@ -262,15 +289,24 @@ export default function App() {
   const handleStart = async () => {
     try {
       const gameStartTime = new Date().toISOString();
+
+      // Get prompt from Gemini
+      const promptResponse = await axios.post("/api/gemini", {
+        action: "generate_prompt",
+      });
+
       await axios.patch("/api/room", {
         room_id: roomId,
         status: "ready",
         sessionToken: sessionToken,
         gameStarted: true,
         gameStartTime: gameStartTime,
+        prompt: promptResponse.data.prompt,
       });
+
       setGameStarted(true);
       setGameStartTime(new Date(gameStartTime));
+      setPrompt(promptResponse.data.prompt);
     } catch (error) {
       console.error("Error starting game:", error);
     }
@@ -388,7 +424,7 @@ export default function App() {
         <span className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
           Prompt
         </span>
-        Draw: "A Cat Playing Piano"
+        Draw: "{prompt || "Loading prompt..."}"
       </h1>
 
       <div className="flex gap-7 h-[calc(100vh-120px)]">
