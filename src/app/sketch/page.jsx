@@ -1,6 +1,6 @@
 "use client";
 
-import { Tldraw } from "tldraw";
+import { Tldraw, exportToBlob } from "tldraw";
 import "tldraw/tldraw.css";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,6 +17,7 @@ export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [editor, setEditor] = useState(null);
 
   useEffect(() => {
     // Function to validate room
@@ -176,6 +177,59 @@ export default function App() {
     }
   };
 
+  const handleSubmitDrawing = async () => {
+    if (!editor) {
+      alert("Editor is not ready");
+      return;
+    }
+
+    try {
+      const shapeIds = editor.getCurrentPageShapeIds();
+      if (shapeIds.size === 0) {
+        alert("Please draw something before submitting!");
+        return;
+      }
+
+      // Export canvas to blob
+      const blob = await exportToBlob({
+        editor,
+        ids: [...shapeIds],
+        format: "png",
+        opts: { background: true },
+      });
+
+      // Create file name with room ID and timestamp
+      const fileName = `${roomId}_${Date.now()}.png`;
+
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from("drawings") // Make sure this matches your bucket name
+        .upload(fileName, blob, {
+          contentType: "image/png",
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("drawings").getPublicUrl(fileName);
+
+      // Update database with image URL
+      await axios.patch("/api/room", {
+        room_id: roomId,
+        sessionToken: sessionToken,
+        status: "submitted",
+        imageUrl: publicUrl,
+      });
+
+      alert("Drawing submitted successfully!");
+    } catch (error) {
+      console.error("Error submitting drawing:", error);
+      alert("Failed to submit drawing. Please try again.");
+    }
+  };
+
   // Update status display in the UI
   const StatusIndicator = () => (
     <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5 self-start">
@@ -246,6 +300,7 @@ export default function App() {
               SharePanel: null,
               CursorChatBubble: null,
             }}
+            onMount={(editorInstance) => setEditor(editorInstance)}
           />
         </div>
 
@@ -264,7 +319,10 @@ export default function App() {
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-4">
-            <button className="px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 hover:-translate-y-0.5 shadow-sm shadow-blue-500/30">
+            <button
+              className="px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 hover:-translate-y-0.5 shadow-sm shadow-blue-500/30"
+              onClick={handleSubmitDrawing}
+            >
               Submit Drawing
             </button>
             <button className="px-6 py-4 bg-white text-red-500 border border-red-200 rounded-xl font-semibold transition-all hover:bg-red-500 hover:text-white hover:-translate-y-0.5">
