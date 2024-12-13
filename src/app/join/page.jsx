@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { customToast } from "@/utils/toast";
 
 export default function Join() {
   const router = useRouter();
@@ -26,10 +27,10 @@ export default function Join() {
         sessionToken: getSessionToken(),
       });
       console.log(response);
-      toast.success("Room created successfully");
+      customToast.success("Room created successfully");
       router.push(`/sketch?roomCode=${response.data.room.room_code}`);
     } catch (error) {
-      toast.error(error.response.data.error);
+      customToast.error(error.response.data.error);
     }
   };
 
@@ -39,10 +40,10 @@ export default function Join() {
         roomCode,
         sessionToken: getSessionToken(),
       });
-      toast.success("Room joined successfully");
+      customToast.success("Room joined successfully");
       router.push(`/sketch?roomCode=${roomCode}`);
     } catch (error) {
-      toast.error(error.response.data.error);
+      customToast.error(error.response.data.error);
     }
   };
 

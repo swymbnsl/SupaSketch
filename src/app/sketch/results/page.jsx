@@ -67,7 +67,6 @@ function ResultsContent() {
             try {
               const response = await axios.post("/api/gemini", {
                 action: "judge_drawings",
-                roomId: roomId,
                 images: {
                   drawing1Data,
                   drawing2Data,
@@ -92,7 +91,9 @@ function ResultsContent() {
 
               setResults(response.data);
             } catch (error) {
-              toast.error("Failed to get AI judgment. Please try refreshing.");
+              customToast.error(
+                "Failed to get AI judgment. Please try refreshing."
+              );
               console.error("Gemini API error:", error);
               setResults(null); // Reset results state on error
             }
@@ -100,13 +101,13 @@ function ResultsContent() {
             setResults(roomData.judgment);
           }
         } catch (error) {
-          toast.error("Failed to process images. Please try refreshing.");
+          customToast.error("Failed to process images. Please try refreshing.");
           console.error("Image processing error:", error);
         }
 
         setLoading(false);
       } catch (error) {
-        toast.error("Failed to load results. Please try refreshing.");
+        customToast.error("Failed to load results. Please try refreshing.");
         console.error("Error fetching results:", error);
         setLoading(false);
         setError(error.message);
