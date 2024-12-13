@@ -35,25 +35,31 @@ export async function POST(request) {
     }
 
     // Generate prompt first
-    const drawingPrompt = await generatePrompt();
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const promptResult = await model.generateContent(
+      "Create a fun and simple drawing prompt that players can draw in 2 minutes. Make it easy to understand and a bit funny. Just write the prompt itself, nothing else."
+    );
+    const promptText = promptResult.response.text();
+
     const roomCode = generateRoomCode();
 
-    const { data, error } = await supabase
+    const { data: room, error } = await supabase
       .from("rooms")
       .insert({
+        room_code: roomCode,
         user1_id: sessionToken,
+        prompt: promptText, // Store prompt during room creation
         user2_id: null,
         drawing1_url: null,
         drawing2_url: null,
         evaluation_status: "pending",
-        room_code: roomCode,
-        prompt: drawingPrompt, // Store the prompt during room creation
       })
-      .select();
+      .select()
+      .single();
 
     if (error) throw error;
 
-    return NextResponse.json({ room: data[0] }, { status: 201 });
+    return NextResponse.json({ room: room }, { status: 201 });
   } catch (err) {
     console.error("Error creating room:", err.message);
     return NextResponse.json(

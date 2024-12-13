@@ -1,10 +1,15 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+} from "@google/generative-ai";
+import supabase from "@/lib/supabase";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export async function POST(request) {
   try {
-    const { action, images } = await request.json();
+    const { action, images, roomId } = await request.json();
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const visionModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -69,10 +74,8 @@ export async function POST(request) {
         let judgment;
 
         try {
-          // First try to parse the response directly
           judgment = JSON.parse(jsonString);
         } catch {
-          // If direct parsing fails, try to extract JSON from markdown code block
           const jsonMatch =
             jsonString.match(/```json\s*([\s\S]*?)\s*```/) ||
             jsonString.match(/{[\s\S]*}/);
@@ -83,8 +86,26 @@ export async function POST(request) {
           }
         }
 
-        // Ensure prompt is included in the response
-        judgment.prompt = images.prompt;
+        // Get room data first
+        const { data: roomData, error: roomError } = await supabase
+          .from("rooms")
+          .select("user1_id, user2_id")
+          .eq("room_code", roomId)
+          .single();
+
+        if (roomError) throw roomError;
+
+        // Store judgment in the database
+        const { error: updateError } = await supabase
+          .from("rooms")
+          .update({
+            judgment: judgment,
+            winner_id:
+              judgment.winner === "1" ? roomData.user1_id : roomData.user2_id,
+          })
+          .eq("room_code", roomId);
+
+        if (updateError) throw updateError;
 
         return Response.json(judgment);
       } catch (error) {

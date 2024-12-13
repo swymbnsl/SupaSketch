@@ -67,6 +67,7 @@ function ResultsContent() {
             try {
               const response = await axios.post("/api/gemini", {
                 action: "judge_drawings",
+                roomId: roomId,
                 images: {
                   drawing1Data,
                   drawing2Data,

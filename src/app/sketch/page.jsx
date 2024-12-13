@@ -291,23 +291,16 @@ function SketchContent() {
     try {
       const gameStartTime = new Date().toISOString();
 
-      // Get prompt from Gemini
-      const promptResponse = await axios.post("/api/gemini", {
-        action: "generate_prompt",
-      });
-
       await axios.patch("/api/room", {
         room_id: roomId,
         status: "ready",
         sessionToken: sessionToken,
         gameStarted: true,
         gameStartTime: gameStartTime,
-        prompt: promptResponse.data.prompt,
       });
 
       setGameStarted(true);
       setGameStartTime(new Date(gameStartTime));
-      setPrompt(promptResponse.data.prompt);
     } catch (error) {
       console.error("Error starting game:", error);
     }
