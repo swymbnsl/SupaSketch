@@ -369,34 +369,44 @@ function SketchContent() {
 
   // Update status display in the UI
   const StatusIndicator = () => (
-    <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5 self-start">
-      <span className="w-2 h-2 bg-white rounded-full"></span>
-      Player 2: {otherUserStatus || "Waiting..."}
+    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-red-500/10 border border-purple-500/20 px-4 py-2 rounded-full">
+      <span className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-pulse"></span>
+        <span className="text-sm font-medium text-white">
+          Player 2: {otherUserStatus || "Waiting..."}
+        </span>
+      </span>
     </div>
   );
 
   if (!isValidRoom) {
-    return <div>Invalid room ID</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+          Invalid Room
+        </h1>
+        <p className="text-gray-400">
+          Please check your room code and try again
+        </p>
+      </div>
+    );
   }
 
   if (!gameStarted) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="p-8 bg-white rounded-xl shadow-sm border border-slate-200 max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-6 text-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4">
+        <div className="p-8 bg-[#1a1a1a] rounded-xl border border-gray-800 max-w-md w-full">
+          <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
             Waiting Room
           </h2>
 
           {isCreator ? (
             <>
-              {/* Room Creator's View */}
               <div className="mb-6 space-y-4">
-                <div className="bg-violet-50 p-4 rounded-lg border border-violet-100">
-                  <p className="text-sm text-violet-700 mb-2">
-                    Your Room Code:
-                  </p>
+                <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+                  <p className="text-sm text-gray-400 mb-2">Your Room Code:</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-2xl font-mono font-bold text-violet-600 tracking-wide">
+                    <code className="text-2xl font-mono font-bold text-purple-400 tracking-wide">
                       {roomId}
                     </code>
                     <button
@@ -432,8 +442,8 @@ function SketchContent() {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <h3 className="font-semibold text-blue-800 mb-2">
+                <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+                  <h3 className="font-semibold text-purple-400 mb-2">
                     Invite Your Friend
                   </h3>
                   <p className="text-sm text-blue-600">
@@ -450,27 +460,22 @@ function SketchContent() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <StatusIndicator />
-                <button
-                  className="w-full mt-6 px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  disabled={otherUserStatus !== "ready"}
-                  onClick={handleStart}
-                >
-                  {otherUserStatus === "ready"
-                    ? "Start Game"
-                    : "Waiting for player to join..."}
-                </button>
-              </div>
+              <StatusIndicator />
+              <button
+                className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={otherUserStatus !== "ready"}
+                onClick={handleStart}
+              >
+                {otherUserStatus === "ready"
+                  ? "Start Game"
+                  : "Waiting for player to join..."}
+              </button>
             </>
           ) : (
             <>
-              {/* Joiner's View */}
               <StatusIndicator />
               <button
-                className={`w-full mt-6 px-6 py-4 ${
-                  isReady ? "bg-green-500" : "bg-blue-500"
-                } text-white rounded-xl font-semibold transition-all hover:opacity-90`}
+                className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
                 onClick={handleReady}
                 disabled={isReady}
               >
@@ -484,19 +489,18 @@ function SketchContent() {
   }
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-screen">
-      {/* Page Title */}
-      <h1 className="text-2xl font-bold mb-7 text-slate-900 flex items-center gap-3">
-        <span className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+    <div className="p-8 max-w-[1600px] mx-auto min-h-screen bg-[#0a0a0a]">
+      <h1 className="text-2xl font-bold mb-7 text-white flex items-center gap-3">
+        <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 px-3 py-1.5 rounded-lg text-sm font-medium">
           Prompt
         </span>
         Draw: &quot;{prompt || "Loading prompt..."}&quot;
       </h1>
 
       <div className="flex gap-7 h-[calc(100vh-120px)]">
-        {/* Main Canvas Area */}
-        <div className="flex-[0_0_65%] relative border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+        <div className="flex-[0_0_65%] relative border border-gray-800 rounded-xl overflow-hidden bg-[#1a1a1a]">
           <Tldraw
+            inferDarkMode
             acceptedImageMimeTypes={[]}
             acceptedVideoMimeTypes={[]}
             options={{ maxPages: 1 }}
@@ -512,11 +516,9 @@ function SketchContent() {
           />
         </div>
 
-        {/* Right Side Panel */}
         <div className="flex-[0_0_35%] flex flex-col gap-6 h-full overflow-y-auto">
-          {/* Status Card */}
-          <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="text-lg font-semibold mb-5 text-slate-900 flex items-center gap-2">
+          <div className="p-6 bg-[#1a1a1a] rounded-xl border border-gray-800">
+            <div className="text-lg font-semibold mb-5 text-white flex items-center gap-2">
               <span className="text-blue-500">●</span> Game Status
             </div>
             <div className="flex flex-col gap-4">
@@ -525,7 +527,7 @@ function SketchContent() {
                   Game Ended!
                 </div>
               ) : (
-                <div className="text-2xl font-semibold text-slate-700">
+                <div className="text-2xl font-semibold text-white">
                   {formatTime(timeLeft)}
                 </div>
               )}
@@ -545,20 +547,13 @@ function SketchContent() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col gap-4">
             <button
-              className="px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 hover:-translate-y-0.5 shadow-sm shadow-blue-500/30"
+              className="px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
               onClick={handleSubmitDrawing}
               disabled={hasSubmitted || gameEnded}
             >
               {hasSubmitted ? "Drawing Submitted" : "Submit Drawing"}
-            </button>
-            <button
-              className="px-6 py-4 bg-white text-red-500 border border-red-200 rounded-xl font-semibold transition-all hover:bg-red-500 hover:text-white hover:-translate-y-0.5"
-              disabled={gameEnded}
-            >
-              Abort Game
             </button>
           </div>
         </div>
