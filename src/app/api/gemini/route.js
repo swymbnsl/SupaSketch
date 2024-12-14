@@ -1,13 +1,31 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  GoogleGenerativeAI,
+  HarmBlockThreshold,
+  HarmCategory,
+} from "@google/generative-ai";
 import supabase from "@/lib/supabase";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const safetySettings = [
+  {
+    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+  },
+  {
+    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+  },
+];
 
 export async function POST(request) {
   try {
     const { action, images, roomId } = await request.json();
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const visionModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const visionModel = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      safetySettings,
+    });
 
     if (action === "generate_prompt") {
       const prompt =
@@ -44,7 +62,7 @@ export async function POST(request) {
       1. Text-only submissions should not be considered valid drawings
       2. Simple stick figures and basic drawings are okay - this is a quick drawing game
       3. The drawing should attempt to illustrate the prompt, not just write it
-      4. If both submissions are text-only, pick the one with better presentation
+      4. If both submissions are text-only, declare a draw
       
       Please:
       1. Pick which drawing better matches the prompt and shows more effort in actually drawing
@@ -81,7 +99,6 @@ export async function POST(request) {
             throw new Error("Failed to parse Gemini response as JSON");
           }
         }
-
         // Get room data first
         const { data: roomData, error: roomError } = await supabase
           .from("rooms")

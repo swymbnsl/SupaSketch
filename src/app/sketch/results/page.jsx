@@ -72,6 +72,7 @@ function ResultsContent() {
                   drawing2Data,
                   prompt: roomData.prompt,
                 },
+                roomId: roomId,
               });
 
               // Store judgment in database

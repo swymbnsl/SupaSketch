@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import axios from "axios";
 import supabase from "@/lib/supabase";
+import { customToast } from "@/utils/toast";
 
 function SketchContent() {
   const searchParams = useSearchParams();
@@ -308,14 +309,14 @@ function SketchContent() {
 
   const handleSubmitDrawing = async () => {
     if (!editor) {
-      alert("Editor is not ready");
+      customToast.error("Editor is not ready");
       return;
     }
 
     try {
       const shapeIds = editor.getCurrentPageShapeIds();
       if (shapeIds.size === 0) {
-        alert("Please draw something before submitting!");
+        customToast.error("Please draw something before submitting!");
         return;
       }
 
@@ -353,10 +354,10 @@ function SketchContent() {
       });
 
       setHasSubmitted(true);
-      alert("Drawing submitted successfully!");
+      customToast.success("Drawing submitted successfully!");
     } catch (error) {
       console.error("Error submitting drawing:", error);
-      alert("Failed to submit drawing. Please try again.");
+      customToast.error("Failed to submit drawing. Please try again.");
     }
   };
 
