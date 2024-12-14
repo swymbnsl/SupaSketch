@@ -2,24 +2,183 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: #eef4f7;
-  font-family: Arial, Helvetica, sans-serif;
+/*
+ * Base styles
+ * ------------------------------------------------------------------------- */
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
-@keyframes move-horizontal-reverse {
-  0% {
-    background-position: 0 0;
-  }
+body {
+  background: #000000;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  /* Remove scrollbar but keep functionality */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* Subtle custom scrollbar for webkit browsers */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/*
+ * Animations
+ * ------------------------------------------------------------------------- */
+@keyframes gradient-xy {
+  0%,
   100% {
-    background-position: -1280px 0;
+    background-size: 400% 400%;
+    background-position: left top;
+  }
+  25% {
+    background-size: 400% 400%;
+    background-position: right top;
+  }
+  50% {
+    background-size: 400% 400%;
+    background-position: right bottom;
+  }
+  75% {
+    background-size: 400% 400%;
+    background-position: left bottom;
   }
 }
-@keyframes move-horizontal {
-  0% {
-    background-position: -1280px 0;
-  }
+
+@keyframes text-glow {
+  0%,
   100% {
-    background-position: 0 0;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
   }
+  50% {
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes expand {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/*
+ * Animation utility classes
+ * ------------------------------------------------------------------------- */
+.animate-gradient-xy {
+  animation: gradient-xy 15s ease infinite;
+}
+
+.animate-text-glow {
+  animation: text-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-expand {
+  animation: expand 0.8s ease-out forwards;
+}
+
+/*
+ * 3D Transform utilities
+ * ------------------------------------------------------------------------- */
+.perspective {
+  perspective: 1000px;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  backface-visibility: hidden;
+  transition: transform 0.8s ease;
+}
+
+/*
+ * Layout components
+ * ------------------------------------------------------------------------- */
+#particles-js {
+  position: fixed; /* Changed to fixed */
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.noise-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.section-transition {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  transform-origin: bottom;
+  z-index: 100;
+}
+
+/* New section styling */
+section {
+  padding: 4rem 0;
+  min-height: 80vh;
+  position: relative;
+  z-index: 2;
+}
+
+/* Content container */
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Smooth reveal animation for sections */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
 }
