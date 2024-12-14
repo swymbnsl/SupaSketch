@@ -7,6 +7,7 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Navbar from "@/components/navbar";
+import ParticlesBackground from "@/components/ParticlesBackground";
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -45,7 +46,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="h-screen relative overflow-hidden bg-gradient-to-b from-black to-purple-900/20">
-        <div id="particles-js" className="absolute inset-0 z-0"></div>
+        <ParticlesBackground />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

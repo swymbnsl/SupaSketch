@@ -22,8 +22,10 @@
     "react-animated-cursor": "^2.11.2",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.4.1",
+    "react-tsparticles": "^2.12.0",
     "three": "^0.171.0",
-    "tldraw": "^3.6.0"
+    "tldraw": "^3.6.0",
+    "tsparticles": "^2.12.0"
   },
   "devDependencies": {
     "eslint": "^8",
