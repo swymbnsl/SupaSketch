@@ -438,11 +438,11 @@ function SketchContent() {
                   </h3>
                   <p className="text-sm text-blue-600">
                     Share this code with a friend to start the drawing battle!
-                    They'll need to:
+                    They&apos;ll need to:
                   </p>
                   <ol className="mt-2 text-sm text-blue-600 list-decimal list-inside space-y-1">
                     <li>Visit SupaSketch</li>
-                    <li>Click "Join Room"</li>
+                    <li>Click &quot;Join Room&quot;</li>
                     <li>
                       Enter code: <span className="font-bold">{roomId}</span>
                     </li>
