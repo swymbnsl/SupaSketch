@@ -198,51 +198,70 @@ function ResultsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-8 max-w-4xl mx-auto text-white">
+    <div className="min-h-screen bg-black p-8 max-w-7xl mx-auto text-white">
       <h1 className="text-5xl font-bold mb-8 text-center bg-gradient-to-r from-violet-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
         The Results Are In!
       </h1>
 
-      <div className="text-2xl text-center mb-12 text-gray-300">
+      <div className="text-2xl text-center mb-8 text-gray-300">
         Prompt: &quot;{results?.prompt || "Loading prompt..."}&quot;
       </div>
 
-      <div className="grid grid-cols-2 gap-8 mb-12">
-        <div className="bg-gray-900 p-6 rounded-xl border border-violet-500/30">
-          <h2 className="text-2xl font-semibold mb-4 text-violet-400">
-            Drawing 1
-          </h2>
-          {drawing1Url && (
-            <img
-              src={drawing1Url}
-              alt="Drawing 1"
-              className="w-full rounded-lg mb-4 border border-violet-500/30"
-            />
-          )}
-          <p className="text-gray-300">{results.critique1}</p>
+      <div className="flex gap-8">
+        {/* Left side - Drawings side by side */}
+        <div className="w-2/3 flex gap-8">
+          {/* Drawing 1 */}
+          <div className="flex-1 bg-gray-900 p-6 rounded-xl border border-violet-500/30">
+            <h2 className="text-2xl font-semibold mb-4 text-violet-400">
+              Drawing 1
+            </h2>
+            {drawing1Url && (
+              <img
+                src={drawing1Url}
+                alt="Drawing 1"
+                className="w-full rounded-lg mb-4 border border-violet-500/30"
+              />
+            )}
+            <p className="text-gray-300">{results.critique1}</p>
+          </div>
+
+          {/* Drawing 2 */}
+          <div className="flex-1 bg-gray-900 p-6 rounded-xl border border-violet-500/30">
+            <h2 className="text-2xl font-semibold mb-4 text-violet-400">
+              Drawing 2
+            </h2>
+            {drawing2Url && (
+              <img
+                src={drawing2Url}
+                alt="Drawing 2"
+                className="w-full rounded-lg mb-4 border border-violet-500/30"
+              />
+            )}
+            <p className="text-gray-300">{results.critique2}</p>
+          </div>
         </div>
 
-        <div className="bg-gray-900 p-6 rounded-xl border border-violet-500/30">
-          <h2 className="text-2xl font-semibold mb-4 text-violet-400">
-            Drawing 2
-          </h2>
-          {drawing2Url && (
-            <img
-              src={drawing2Url}
-              alt="Drawing 2"
-              className="w-full rounded-lg mb-4 border border-violet-500/30"
-            />
-          )}
-          <p className="text-gray-300">{results.critique2}</p>
-        </div>
-      </div>
+        {/* Right side - Results and Button */}
+        <div className="w-1/3">
+          <div className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 p-6 rounded-xl border border-violet-500/30 h-full flex flex-col justify-between">
+            <div>
+              <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-violet-400 to-pink-400 text-transparent bg-clip-text">
+                Winner: Drawing {results.winner}
+              </h2>
+              <div className="text-violet-300 font-medium italic text-xl">
+                &quot;{results.roast}&quot;
+              </div>
+            </div>
 
-      <div className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 p-8 rounded-xl border border-violet-500/30">
-        <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-violet-400 to-pink-400 text-transparent bg-clip-text">
-          Winner: Drawing {results.winner}
-        </h2>
-        <div className="text-violet-300 font-medium italic text-xl">
-          &quot;{results.roast}&quot;
+            <div className="mt-auto pt-8">
+              <a
+                href="/join"
+                className="block px-8 py-4 text-xl font-semibold rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-500 hover:to-pink-500 transition-all duration-200 shadow-lg hover:shadow-violet-500/25 text-center"
+              >
+                Start New Game
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
