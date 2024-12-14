@@ -168,18 +168,20 @@ function ResultsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl font-semibold">Judging masterpieces...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-3xl font-semibold text-violet-400">
+          Judging masterpieces...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-500 text-center max-w-md">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-xl text-red-400 text-center max-w-md">
           <p>Oops! Something went wrong.</p>
-          <p className="text-sm mt-2">Try refreshing the page.</p>
+          <p className="text-sm mt-2 text-gray-400">Try refreshing the page.</p>
         </div>
       </div>
     );
@@ -187,8 +189,8 @@ function ResultsContent() {
 
   if (!results) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-amber-500">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-2xl text-amber-400">
           Waiting for all drawings to be submitted...
         </div>
       </div>
@@ -196,46 +198,50 @@ function ResultsContent() {
   }
 
   return (
-    <div className="min-h-screen p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-center">
+    <div className="min-h-screen bg-black p-8 max-w-4xl mx-auto text-white">
+      <h1 className="text-5xl font-bold mb-8 text-center bg-gradient-to-r from-violet-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
         The Results Are In!
       </h1>
 
-      <div className="text-xl text-center mb-8">
+      <div className="text-2xl text-center mb-12 text-gray-300">
         Prompt: &quot;{results?.prompt || "Loading prompt..."}&quot;
       </div>
 
       <div className="grid grid-cols-2 gap-8 mb-12">
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Drawing 1</h2>
+        <div className="bg-gray-900 p-6 rounded-xl border border-violet-500/30">
+          <h2 className="text-2xl font-semibold mb-4 text-violet-400">
+            Drawing 1
+          </h2>
           {drawing1Url && (
             <img
               src={drawing1Url}
               alt="Drawing 1"
-              className="w-full rounded-lg mb-4"
+              className="w-full rounded-lg mb-4 border border-violet-500/30"
             />
           )}
-          <p className="text-gray-700">{results.critique1}</p>
+          <p className="text-gray-300">{results.critique1}</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Drawing 2</h2>
+        <div className="bg-gray-900 p-6 rounded-xl border border-violet-500/30">
+          <h2 className="text-2xl font-semibold mb-4 text-violet-400">
+            Drawing 2
+          </h2>
           {drawing2Url && (
             <img
               src={drawing2Url}
               alt="Drawing 2"
-              className="w-full rounded-lg mb-4"
+              className="w-full rounded-lg mb-4 border border-violet-500/30"
             />
           )}
-          <p className="text-gray-700">{results.critique2}</p>
+          <p className="text-gray-300">{results.critique2}</p>
         </div>
       </div>
 
-      <div className="bg-violet-100 p-6 rounded-xl">
-        <h2 className="text-2xl font-bold mb-4">
+      <div className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 p-8 rounded-xl border border-violet-500/30">
+        <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-violet-400 to-pink-400 text-transparent bg-clip-text">
           Winner: Drawing {results.winner}
         </h2>
-        <div className="text-violet-800 font-medium italic">
+        <div className="text-violet-300 font-medium italic text-xl">
           &quot;{results.roast}&quot;
         </div>
       </div>
