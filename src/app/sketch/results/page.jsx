@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
+import { getSessionToken } from "@/utils/sessionTokenFunctions";
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -15,6 +16,34 @@ function ResultsContent() {
   const [drawing1Url, setDrawing1Url] = useState(null);
   const [drawing2Url, setDrawing2Url] = useState(null);
   const [error, setError] = useState(null);
+
+  const sessionToken = getSessionToken();
+
+  useEffect(() => {
+    if (!roomId) return;
+
+    const channel = supabase
+      .channel(`room-judgment-${roomId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "rooms",
+          filter: `room_code=eq.${roomId}`,
+        },
+        (payload) => {
+          if (payload.new.judgment) {
+            setResults(payload.new.judgment);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [roomId]);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -63,42 +92,59 @@ function ResultsContent() {
           ]);
 
           // Get judgment from Gemini if not already judged
+          // src/app/sketch/results/page.jsx
+
+          // In the fetchResults function
           if (!roomData.judgment) {
-            try {
-              const response = await axios.post("/api/gemini", {
-                action: "judge_drawings",
-                images: {
-                  drawing1Data,
-                  drawing2Data,
-                  prompt: roomData.prompt,
-                },
-                roomId: roomId,
-              });
+            // Only the room creator should generate the judgment
+            if (roomData.user1_id === sessionToken) {
+              try {
+                const response = await axios.post("/api/gemini", {
+                  action: "judge_drawings",
+                  images: {
+                    drawing1Data,
+                    drawing2Data,
+                    prompt: roomData.prompt,
+                  },
+                  roomId: roomId,
+                });
 
-              // Store judgment in database
-              const { error: updateError } = await supabase
-                .from("rooms")
-                .update({
-                  judgment: response.data,
-                  winner_id:
-                    response.data.winner === "1"
-                      ? roomData.user1_id
-                      : roomData.user2_id,
-                })
-                .eq("room_code", roomId);
-              if (updateError) {
-                throw new Error("Failed to update room with judgment");
+                setResults(response.data);
+              } catch (error) {
+                customToast.error(
+                  "Failed to get AI judgment. Please try refreshing."
+                );
+                console.error("Gemini API error:", error);
+                setResults(null);
               }
+            } else {
+              // Non-creator users should wait for the judgment
+              const maxAttempts = 10;
+              let attempts = 0;
 
-              setResults(response.data);
-            } catch (error) {
-              customToast.error(
-                "Failed to get AI judgment. Please try refreshing."
-              );
-              console.error("Gemini API error:", error);
-              setResults(null); // Reset results state on error
+              const waitForJudgment = async () => {
+                const { data: updatedRoom } = await supabase
+                  .from("rooms")
+                  .select("judgment")
+                  .eq("room_code", roomId)
+                  .single();
+
+                if (updatedRoom.judgment) {
+                  setResults(updatedRoom.judgment);
+                } else if (attempts < maxAttempts) {
+                  attempts++;
+                  setTimeout(waitForJudgment, 2000); // Check every 2 seconds
+                } else {
+                  customToast.error(
+                    "Timeout waiting for results. Please refresh."
+                  );
+                }
+              };
+
+              waitForJudgment();
             }
           } else {
+            // Use existing judgment from database
             setResults(roomData.judgment);
           }
         } catch (error) {

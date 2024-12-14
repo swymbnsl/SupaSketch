@@ -10,11 +10,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const safetySettings = [
   {
     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
   },
   {
     category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    threshold: HarmBlockThreshold.BLOCK_NONE,
   },
 ];
 
@@ -38,7 +38,20 @@ export async function POST(request) {
     }
 
     if (action === "judge_drawings") {
+      // First check if judgment already exists
+      const { data: existingRoom } = await supabase
+        .from("rooms")
+        .select("judgment")
+        .eq("room_code", roomId)
+        .single();
+
+      if (existingRoom?.judgment) {
+        return Response.json(existingRoom.judgment);
+      }
+
+      // If no judgment exists, proceed with generation
       const { drawing1Data, drawing2Data, prompt } = images;
+      // ... rest of the judgment generation code ...
 
       // Convert base64 images to Gemini format
       const image1 = {
