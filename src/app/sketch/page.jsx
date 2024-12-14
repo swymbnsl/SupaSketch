@@ -386,26 +386,97 @@ function SketchContent() {
           <h2 className="text-2xl font-bold mb-6 text-slate-900">
             Waiting Room
           </h2>
-          <StatusIndicator />
 
           {isCreator ? (
-            <button
-              className="w-full mt-6 px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              disabled={otherUserStatus !== "ready"}
-              onClick={handleStart}
-            >
-              Start Game
-            </button>
+            <>
+              {/* Room Creator's View */}
+              <div className="mb-6 space-y-4">
+                <div className="bg-violet-50 p-4 rounded-lg border border-violet-100">
+                  <p className="text-sm text-violet-700 mb-2">
+                    Your Room Code:
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-2xl font-mono font-bold text-violet-600 tracking-wide">
+                      {roomId}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(roomId);
+                        customToast.success("Room code copied!");
+                      }}
+                      className="p-2 hover:bg-violet-100 rounded-md transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-violet-600"
+                      >
+                        <rect
+                          width="14"
+                          height="14"
+                          x="8"
+                          y="8"
+                          rx="2"
+                          ry="2"
+                        />
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                  <h3 className="font-semibold text-blue-800 mb-2">
+                    Invite Your Friend
+                  </h3>
+                  <p className="text-sm text-blue-600">
+                    Share this code with a friend to start the drawing battle!
+                    They'll need to:
+                  </p>
+                  <ol className="mt-2 text-sm text-blue-600 list-decimal list-inside space-y-1">
+                    <li>Visit SupaSketch</li>
+                    <li>Click "Join Room"</li>
+                    <li>
+                      Enter code: <span className="font-bold">{roomId}</span>
+                    </li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <StatusIndicator />
+                <button
+                  className="w-full mt-6 px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  disabled={otherUserStatus !== "ready"}
+                  onClick={handleStart}
+                >
+                  {otherUserStatus === "ready"
+                    ? "Start Game"
+                    : "Waiting for player to join..."}
+                </button>
+              </div>
+            </>
           ) : (
-            <button
-              className={`w-full mt-6 px-6 py-4 ${
-                isReady ? "bg-green-500" : "bg-blue-500"
-              } text-white rounded-xl font-semibold transition-all hover:opacity-90`}
-              onClick={handleReady}
-              disabled={isReady}
-            >
-              {isReady ? "Ready!" : "Ready Up"}
-            </button>
+            <>
+              {/* Joiner's View */}
+              <StatusIndicator />
+              <button
+                className={`w-full mt-6 px-6 py-4 ${
+                  isReady ? "bg-green-500" : "bg-blue-500"
+                } text-white rounded-xl font-semibold transition-all hover:opacity-90`}
+                onClick={handleReady}
+                disabled={isReady}
+              >
+                {isReady ? "Ready!" : "Ready Up"}
+              </button>
+            </>
           )}
         </div>
       </div>
