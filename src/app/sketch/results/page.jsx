@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import supabase from "@/lib/supabase";
-import toast from "react-hot-toast";
+import { customToast } from "@/utils/toast";
 
 function ResultsContent() {
   const searchParams = useSearchParams();
