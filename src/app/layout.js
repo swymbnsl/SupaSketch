@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import CustomCursor from "@/components/CustomCursor";
 import { GameStateProvider } from "@/context/GameStateContext";
+import SoundInitializer from "@/components/SoundInitializer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
           suppressHydrationWarning
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
+          <SoundInitializer />
           <CustomCursor />
           <Toaster />
           {children}

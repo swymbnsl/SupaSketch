@@ -7,6 +7,7 @@ import axios from "axios";
 import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
 import { getSessionToken } from "@/utils/sessionTokenFunctions";
+import { playSound } from "@/utils/sound";
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -35,6 +36,7 @@ function ResultsContent() {
         (payload) => {
           if (payload.new.judgment) {
             setResults(payload.new.judgment);
+            playSound.success();
           }
         }
       )
@@ -254,12 +256,13 @@ function ResultsContent() {
             </div>
 
             <div className="mt-auto pt-8">
-              <a
+              <Link
                 href="/join"
+                onClick={() => playSound.button()}
                 className="block px-8 py-4 text-xl font-semibold rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-500 hover:to-pink-500 transition-all duration-200 shadow-lg hover:shadow-violet-500/25 text-center"
               >
                 Start New Game
-              </a>
+              </Link>
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { playSound } from "@/utils/sound";
 import { Github } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -36,6 +37,7 @@ export default function Navbar() {
 
           <Link
             href="/join"
+            onClick={() => playSound.button()}
             className="relative inline-block bg-gradient-to-br from-purple-500 to-pink-600 px-6 py-2.5 rounded-full text-white font-medium transition-all
             shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.8)]
             border border-purple-500/20 backdrop-blur-sm hover:scale-105 active:scale-95"

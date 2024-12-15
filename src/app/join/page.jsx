@@ -10,6 +10,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { customToast } from "@/utils/toast";
+import { playSound } from "@/utils/sound";
 
 export default function Join() {
   const router = useRouter();
@@ -25,14 +26,17 @@ export default function Join() {
   }, []);
 
   const handleCreateRoom = async () => {
+    playSound.button();
     setIsLoading({ ...isLoading, create: true });
     try {
       const response = await axios.post("/api/room", {
         sessionToken: getSessionToken(),
       });
+      playSound.success();
       customToast.success("Room created successfully");
       router.push(`/sketch?roomCode=${response.data.room.room_code}`);
     } catch (error) {
+      playSound.error();
       customToast.error(error.response.data.error);
     } finally {
       setIsLoading({ ...isLoading, create: false });
@@ -40,19 +44,30 @@ export default function Join() {
   };
 
   const handleJoinRoom = async () => {
+    playSound.button();
     setIsLoading({ ...isLoading, join: true });
     try {
       const response = await axios.put("/api/room", {
         roomCode,
         sessionToken: getSessionToken(),
       });
+      playSound.success();
       customToast.success("Room joined successfully");
       router.push(`/sketch?roomCode=${roomCode}`);
     } catch (error) {
+      playSound.error();
       customToast.error(error.response.data.error);
     } finally {
       setIsLoading({ ...isLoading, join: false });
     }
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value.toUpperCase();
+    if (value !== roomCode) {
+      playSound.type();
+    }
+    setRoomCode(value);
   };
 
   return (
@@ -105,8 +120,9 @@ export default function Join() {
                 type="text"
                 placeholder="Enter room code"
                 value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
+                onChange={handleInputChange}
                 className="w-full px-4 py-3 bg-zinc-800 text-white border border-zinc-700 rounded-xl focus:outline-none focus:border-purple-500 placeholder-zinc-500"
+                maxLength={6}
               />
               <button
                 onClick={handleJoinRoom}

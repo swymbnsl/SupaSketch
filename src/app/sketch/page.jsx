@@ -10,6 +10,7 @@ import axios from "axios";
 import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
 import { useGameState } from "@/context/GameStateContext";
+import { playSound } from "@/utils/sound";
 
 function SketchContent() {
   const searchParams = useSearchParams();
@@ -285,6 +286,7 @@ function SketchContent() {
 
   const handleReady = async () => {
     setIsReadying(true);
+    playSound.click();
     try {
       await axios.patch("/api/room", {
         room_id: roomId,
@@ -301,6 +303,7 @@ function SketchContent() {
 
   const handleStart = async () => {
     setIsStarting(true);
+    playSound.click();
     try {
       const gameStartTime = new Date().toISOString();
 
@@ -329,6 +332,7 @@ function SketchContent() {
     }
 
     setIsSubmitting(true);
+    playSound.click();
     try {
       const shapeIds = editor.getCurrentPageShapeIds();
       if (shapeIds.size === 0) {

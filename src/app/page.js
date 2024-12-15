@@ -7,6 +7,7 @@ import React from "react";
 import Navbar from "@/components/navbar";
 import ParticlesBackground from "@/components/ParticlesBackground";
 import { Bot, Paintbrush, Users } from "lucide-react";
+import { playSound } from "@/utils/sound";
 
 export default function Home() {
   return (
@@ -50,6 +51,7 @@ export default function Home() {
               className="mb-16"
             >
               <Link
+                onClick={() => playSound.button()}
                 href="/join"
                 className="inline-block bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 px-12 py-5 rounded-full text-xl font-bold transition-all
                 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.8)]
