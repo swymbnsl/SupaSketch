@@ -7,6 +7,8 @@ import axios from "axios";
 import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
 import { getSessionToken } from "@/utils/sessionTokenFunctions";
+import { playSound } from "@/utils/sound";
+import Link from "next/link";
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -35,6 +37,7 @@ function ResultsContent() {
         (payload) => {
           if (payload.new.judgment) {
             setResults(payload.new.judgment);
+            playSound.success();
           }
         }
       )
@@ -168,18 +171,20 @@ function ResultsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl font-semibold">Judging masterpieces...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-3xl font-semibold text-violet-400">
+          Judging masterpieces...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-red-500 text-center max-w-md">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-xl text-red-400 text-center max-w-md">
           <p>Oops! Something went wrong.</p>
-          <p className="text-sm mt-2">Try refreshing the page.</p>
+          <p className="text-sm mt-2 text-gray-400">Try refreshing the page.</p>
         </div>
       </div>
     );
@@ -187,8 +192,8 @@ function ResultsContent() {
 
   if (!results) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl text-amber-500">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-2xl text-amber-400">
           Waiting for all drawings to be submitted...
         </div>
       </div>
@@ -196,47 +201,71 @@ function ResultsContent() {
   }
 
   return (
-    <div className="min-h-screen p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8 text-center">
+    <div className="min-h-screen bg-black p-8 max-w-7xl mx-auto text-white">
+      <h1 className="text-5xl font-bold mb-8 text-center bg-gradient-to-r from-violet-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
         The Results Are In!
       </h1>
 
-      <div className="text-xl text-center mb-8">
+      <div className="text-2xl text-center mb-8 text-gray-300">
         Prompt: &quot;{results?.prompt || "Loading prompt..."}&quot;
       </div>
 
-      <div className="grid grid-cols-2 gap-8 mb-12">
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Drawing 1</h2>
-          {drawing1Url && (
-            <img
-              src={drawing1Url}
-              alt="Drawing 1"
-              className="w-full rounded-lg mb-4"
-            />
-          )}
-          <p className="text-gray-700">{results.critique1}</p>
+      <div className="flex gap-8">
+        {/* Left side - Drawings side by side */}
+        <div className="w-2/3 flex gap-8">
+          {/* Drawing 1 */}
+          <div className="flex-1 bg-gray-900 p-6 rounded-xl border border-violet-500/30">
+            <h2 className="text-2xl font-semibold mb-4 text-violet-400">
+              Drawing 1
+            </h2>
+            {drawing1Url && (
+              <img
+                src={drawing1Url}
+                alt="Drawing 1"
+                className="w-full rounded-lg mb-4 border border-violet-500/30"
+              />
+            )}
+            <p className="text-gray-300">{results.critique1}</p>
+          </div>
+
+          {/* Drawing 2 */}
+          <div className="flex-1 bg-gray-900 p-6 rounded-xl border border-violet-500/30">
+            <h2 className="text-2xl font-semibold mb-4 text-violet-400">
+              Drawing 2
+            </h2>
+            {drawing2Url && (
+              <img
+                src={drawing2Url}
+                alt="Drawing 2"
+                className="w-full rounded-lg mb-4 border border-violet-500/30"
+              />
+            )}
+            <p className="text-gray-300">{results.critique2}</p>
+          </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold mb-4">Drawing 2</h2>
-          {drawing2Url && (
-            <img
-              src={drawing2Url}
-              alt="Drawing 2"
-              className="w-full rounded-lg mb-4"
-            />
-          )}
-          <p className="text-gray-700">{results.critique2}</p>
-        </div>
-      </div>
+        {/* Right side - Results and Button */}
+        <div className="w-1/3">
+          <div className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 p-6 rounded-xl border border-violet-500/30 h-full flex flex-col justify-between">
+            <div>
+              <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-violet-400 to-pink-400 text-transparent bg-clip-text">
+                Winner: Drawing {results.winner}
+              </h2>
+              <div className="text-violet-300 font-medium italic text-xl">
+                &quot;{results.roast}&quot;
+              </div>
+            </div>
 
-      <div className="bg-violet-100 p-6 rounded-xl">
-        <h2 className="text-2xl font-bold mb-4">
-          Winner: Drawing {results.winner}
-        </h2>
-        <div className="text-violet-800 font-medium italic">
-          &quot;{results.roast}&quot;
+            <div className="mt-auto pt-8">
+              <Link
+                href="/join"
+                onClick={() => playSound.button()}
+                className="block px-8 py-4 text-xl font-semibold rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-500 hover:to-pink-500 transition-all duration-200 shadow-lg hover:shadow-violet-500/25 text-center"
+              >
+                Start New Game
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

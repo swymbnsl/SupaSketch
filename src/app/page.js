@@ -1,89 +1,142 @@
 "use client";
 
-import Navbar from "@/components/navbar";
-import { Bot, Database, Pencil, Trophy } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import React from "react";
+import Navbar from "@/components/navbar";
+import ParticlesBackground from "@/components/ParticlesBackground";
+import { Bot, Paintbrush, Users } from "lucide-react";
+import { playSound } from "@/utils/sound";
 
 export default function Home() {
   return (
-    <>
+    <div className="h-screen bg-gradient-to-b from-black via-purple-950/10 to-black relative overflow-hidden">
       <Navbar />
-      {/* Hero section with Supabase-inspired gradient */}
-      <div className="min-h-[600px] relative bg-gradient-to-t from-[#b273f3] to-[#7b5cc5] flex flex-col items-center justify-center px-6 md:px-24 text-white">
-        <div
-          className="absolute top-0 left-0 w-full h-8 bg-[length:1280px_32px] block"
-          style={{
-            animation: "move-horizontal 8s linear infinite",
-            backgroundImage: "url(/top-wave.svg)",
-          }}
-        ></div>
-        <div
-          className="absolute bottom-0 left-0 w-full h-8 bg-[length:1280px_32px] block"
-          style={{
-            animation: "move-horizontal-reverse 8s linear infinite",
-            backgroundImage: "url(/bottom-wave.svg)",
-          }}
-        ></div>
-        <div className="max-w-4xl text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            Draw, Compete, Let AI Decide
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Join the ultimate sketching showdown where your creativity meets
-            artificial intelligence, powered by Supabase
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/join"
-              className="bg-white text-[#7b5cc5] px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 flex items-center justify-center gap-2"
+      <ParticlesBackground />
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-radial from-purple-500/5 via-transparent to-transparent" />
+
+      {/* Main Content */}
+      <div className="relative z-10 h-full flex items-center justify-center px-6 max-w-7xl mx-auto">
+        <div className="text-center max-w-4xl relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Title with enhanced styling */}
+            <div className="relative mb-8">
+              <h1 className="text-7xl md:text-9xl font-bold tracking-tight">
+                <span className="relative inline-block text-transparent bg-gradient-to-br from-purple-400 via-pink-500 to-purple-600 bg-clip-text animate-gradient-x">
+                  Sketch &
+                  <br />
+                  Compete
+                </span>
+              </h1>
+              <div className="absolute inset-0 blur-3xl bg-purple-500/20 -z-10" />
+            </div>
+
+            {/* Subtitle with improved contrast */}
+            <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-2xl mx-auto">
+              Create private rooms, invite friends, and let AI judge your
+              artistic showdowns in real-time drawing competitions
+            </p>
+
+            {/* CTA Button */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="mb-16"
             >
-              Join Now <span className="ml-2">→</span>
-            </Link>
-          </div>
+              <Link
+                onClick={() => playSound.button()}
+                href="/join"
+                className="inline-block bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 px-12 py-5 rounded-full text-xl font-bold transition-all
+                shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.8)]
+                border border-purple-500/20 backdrop-blur-sm"
+              >
+                Create a Room
+              </Link>
+            </motion.div>
+
+            {/* Feature Cards */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="flex flex-wrap justify-center gap-4 mb-16 relative z-20"
+            >
+              {[
+                { icon: <Users className="w-6 h-6" />, text: "Private Rooms" },
+                {
+                  icon: <Paintbrush className="w-6 h-6" />,
+                  text: "Real-time Drawing",
+                },
+                { icon: <Bot className="w-6 h-6" />, text: "AI Judging" },
+              ].map((feature, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{
+                    scale: 1.05,
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  }}
+                  className="bg-white/5 backdrop-blur-sm px-6 py-4 rounded-2xl text-gray-200 flex items-center gap-3 
+                  shadow-lg transition-all border border-white/10 hover:border-purple-500/50"
+                >
+                  {feature.icon}
+                  <span className="font-medium">{feature.text}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Powered by Section */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="flex items-center justify-center gap-3"
+            >
+              <span className="text-gray-400">Powered by</span>
+              <div className="relative group">
+                <Image
+                  src="supabase-logo-wordmark--dark.svg"
+                  alt="Supabase"
+                  width={120}
+                  height={24}
+                  className="relative z-10 opacity-75 group-hover:opacity-100 transition-opacity"
+                />
+                <div className="absolute inset-0 bg-emerald-500/10 blur-xl group-hover:bg-emerald-500/20 transition-all duration-300" />
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
+
+        {/* Enhanced Background Elements */}
+        <motion.div
+          animate={{
+            y: [0, -20, 0],
+            rotate: [0, 360],
+          }}
+          transition={{
+            y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+          }}
+          className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            y: [0, 20, 0],
+            rotate: [360, 0],
+          }}
+          transition={{
+            y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: 15, repeat: Infinity, ease: "linear" },
+          }}
+          className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-full blur-[100px]"
+        />
       </div>
-
-      {/* Features section */}
-      <div className="max-w-7xl mx-auto py-20 px-4">
-        <h2 className="text-3xl font-bold mb-16 text-center">
-          How SupaSketch Works
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-          {/* Feature cards */}
-          <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="h-16 w-16 bg-[#b273f3] rounded-lg flex items-center justify-center mb-6">
-              <Pencil className="text-white text-3xl" />
-            </div>
-            <h3 className="text-xl font-semibold mb-4">Draw Your Best</h3>
-            <p className="text-gray-600">
-              Get creative with our intuitive drawing tools and complete
-              challenges in real-time
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="h-16 w-16 bg-[#7b5cc5] rounded-lg flex items-center justify-center mb-6">
-              <Bot className="text-white text-3xl" />
-            </div>
-            <h3 className="text-xl font-semibold mb-4">AI Evaluation</h3>
-            <p className="text-gray-600">
-              Advanced AI algorithms analyze and score your drawings instantly
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="h-16 w-16 bg-[#b273f3] rounded-lg flex items-center justify-center mb-6">
-              <Database className="text-white text-3xl" />
-            </div>
-            <h3 className="text-xl font-semibold mb-4">Powered by Supabase</h3>
-            <p className="text-gray-600">
-              Real-time updates, secure authentication, and lightning-fast
-              performance
-            </p>
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }

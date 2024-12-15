@@ -9,6 +9,8 @@ import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import axios from "axios";
 import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
+import { useGameState } from "@/context/GameStateContext";
+import { playSound } from "@/utils/sound";
 
 function SketchContent() {
   const searchParams = useSearchParams();
@@ -27,6 +29,10 @@ function SketchContent() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const { setGameStarted: setGameStartedContext } = useGameState();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReadying, setIsReadying] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
     // Function to validate room
@@ -175,6 +181,7 @@ function SketchContent() {
           if (payload.new.game_started && payload.new.game_start_time) {
             setGameStartTime(new Date(payload.new.game_start_time));
             setGameStarted(true);
+            setGameStartedContext(true);
           }
 
           // Handle submissions
@@ -194,6 +201,7 @@ function SketchContent() {
           // Check if both players have submitted
           if (drawing1Submitted && drawing2Submitted) {
             setGameEnded(true);
+            setGameStartedContext(false);
             router.push(`/sketch/results?roomCode=${roomId}`);
           }
         }
@@ -217,6 +225,7 @@ function SketchContent() {
       if (remainingSeconds === 0) {
         clearInterval(timer);
         setGameEnded(true);
+        setGameStartedContext(false);
         // Auto-submit if haven't submitted yet and editor is available
         if (!hasSubmitted && editor) {
           handleAutoSubmit();
@@ -276,6 +285,8 @@ function SketchContent() {
   };
 
   const handleReady = async () => {
+    setIsReadying(true);
+    playSound.click();
     try {
       await axios.patch("/api/room", {
         room_id: roomId,
@@ -285,10 +296,14 @@ function SketchContent() {
       setIsReady(true);
     } catch (error) {
       console.error("Error updating ready status:", error);
+    } finally {
+      setIsReadying(false);
     }
   };
 
   const handleStart = async () => {
+    setIsStarting(true);
+    playSound.click();
     try {
       const gameStartTime = new Date().toISOString();
 
@@ -301,9 +316,12 @@ function SketchContent() {
       });
 
       setGameStarted(true);
+      setGameStartedContext(true);
       setGameStartTime(new Date(gameStartTime));
     } catch (error) {
       console.error("Error starting game:", error);
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -313,6 +331,8 @@ function SketchContent() {
       return;
     }
 
+    setIsSubmitting(true);
+    playSound.click();
     try {
       const shapeIds = editor.getCurrentPageShapeIds();
       if (shapeIds.size === 0) {
@@ -320,7 +340,6 @@ function SketchContent() {
         return;
       }
 
-      // Export canvas to blob
       const blob = await exportToBlob({
         editor,
         ids: [...shapeIds],
@@ -328,10 +347,8 @@ function SketchContent() {
         opts: { background: true },
       });
 
-      // Create file name with room ID and timestamp
       const fileName = `${roomId}_${Date.now()}.png`;
 
-      // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from("drawings")
         .upload(fileName, blob, {
@@ -340,12 +357,10 @@ function SketchContent() {
 
       if (error) throw error;
 
-      // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("drawings").getPublicUrl(fileName);
 
-      // Update database with image URL
       await axios.patch("/api/room", {
         room_id: roomId,
         sessionToken: sessionToken,
@@ -358,6 +373,8 @@ function SketchContent() {
     } catch (error) {
       console.error("Error submitting drawing:", error);
       customToast.error("Failed to submit drawing. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -369,34 +386,44 @@ function SketchContent() {
 
   // Update status display in the UI
   const StatusIndicator = () => (
-    <div className="bg-green-500 text-white px-4 py-2 rounded-full text-sm inline-flex items-center gap-1.5 self-start">
-      <span className="w-2 h-2 bg-white rounded-full"></span>
-      Player 2: {otherUserStatus || "Waiting..."}
+    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-red-500/10 border border-purple-500/20 px-4 py-2 rounded-full">
+      <span className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-pulse"></span>
+        <span className="text-sm font-medium text-white">
+          Player 2: {otherUserStatus || "Waiting..."}
+        </span>
+      </span>
     </div>
   );
 
   if (!isValidRoom) {
-    return <div>Invalid room ID</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+          Invalid Room
+        </h1>
+        <p className="text-gray-400">
+          Please check your room code and try again
+        </p>
+      </div>
+    );
   }
 
   if (!gameStarted) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="p-8 bg-white rounded-xl shadow-sm border border-slate-200 max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-6 text-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4">
+        <div className="p-8 bg-[#1a1a1a] rounded-xl border border-gray-800 max-w-md w-full">
+          <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
             Waiting Room
           </h2>
 
           {isCreator ? (
             <>
-              {/* Room Creator's View */}
               <div className="mb-6 space-y-4">
-                <div className="bg-violet-50 p-4 rounded-lg border border-violet-100">
-                  <p className="text-sm text-violet-700 mb-2">
-                    Your Room Code:
-                  </p>
+                <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+                  <p className="text-sm text-gray-400 mb-2">Your Room Code:</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-2xl font-mono font-bold text-violet-600 tracking-wide">
+                    <code className="text-2xl font-mono font-bold text-purple-400 tracking-wide">
                       {roomId}
                     </code>
                     <button
@@ -432,8 +459,8 @@ function SketchContent() {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <h3 className="font-semibold text-blue-800 mb-2">
+                <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+                  <h3 className="font-semibold text-purple-400 mb-2">
                     Invite Your Friend
                   </h3>
                   <p className="text-sm text-blue-600">
@@ -450,31 +477,32 @@ function SketchContent() {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <StatusIndicator />
-                <button
-                  className="w-full mt-6 px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  disabled={otherUserStatus !== "ready"}
-                  onClick={handleStart}
-                >
-                  {otherUserStatus === "ready"
-                    ? "Start Game"
-                    : "Waiting for player to join..."}
-                </button>
-              </div>
+              <StatusIndicator />
+              <button
+                className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={otherUserStatus !== "ready" || isStarting}
+                onClick={handleStart}
+              >
+                {isStarting
+                  ? "Starting Game..."
+                  : otherUserStatus === "ready"
+                  ? "Start Game"
+                  : "Waiting for player to join..."}
+              </button>
             </>
           ) : (
             <>
-              {/* Joiner's View */}
               <StatusIndicator />
               <button
-                className={`w-full mt-6 px-6 py-4 ${
-                  isReady ? "bg-green-500" : "bg-blue-500"
-                } text-white rounded-xl font-semibold transition-all hover:opacity-90`}
+                className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
                 onClick={handleReady}
-                disabled={isReady}
+                disabled={isReady || isReadying}
               >
-                {isReady ? "Ready!" : "Ready Up"}
+                {isReadying
+                  ? "Getting Ready..."
+                  : isReady
+                  ? "Ready!"
+                  : "Ready Up"}
               </button>
             </>
           )}
@@ -484,19 +512,18 @@ function SketchContent() {
   }
 
   return (
-    <div className="p-8 max-w-[1600px] mx-auto min-h-screen">
-      {/* Page Title */}
-      <h1 className="text-2xl font-bold mb-7 text-slate-900 flex items-center gap-3">
-        <span className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium">
+    <div className="p-8 max-w-[1600px] mx-auto min-h-screen bg-[#0a0a0a]">
+      <h1 className="text-2xl font-bold mb-7 text-white flex items-center gap-3">
+        <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 px-3 py-1.5 rounded-lg text-sm font-medium">
           Prompt
         </span>
         Draw: &quot;{prompt || "Loading prompt..."}&quot;
       </h1>
 
       <div className="flex gap-7 h-[calc(100vh-120px)]">
-        {/* Main Canvas Area */}
-        <div className="flex-[0_0_65%] relative border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+        <div className="flex-[0_0_65%] relative border border-gray-800 rounded-xl overflow-hidden bg-[#1a1a1a]">
           <Tldraw
+            inferDarkMode
             acceptedImageMimeTypes={[]}
             acceptedVideoMimeTypes={[]}
             options={{ maxPages: 1 }}
@@ -512,11 +539,9 @@ function SketchContent() {
           />
         </div>
 
-        {/* Right Side Panel */}
         <div className="flex-[0_0_35%] flex flex-col gap-6 h-full overflow-y-auto">
-          {/* Status Card */}
-          <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-200">
-            <div className="text-lg font-semibold mb-5 text-slate-900 flex items-center gap-2">
+          <div className="p-6 bg-[#1a1a1a] rounded-xl border border-gray-800">
+            <div className="text-lg font-semibold mb-5 text-white flex items-center gap-2">
               <span className="text-blue-500">●</span> Game Status
             </div>
             <div className="flex flex-col gap-4">
@@ -525,7 +550,7 @@ function SketchContent() {
                   Game Ended!
                 </div>
               ) : (
-                <div className="text-2xl font-semibold text-slate-700">
+                <div className="text-2xl font-semibold text-white">
                   {formatTime(timeLeft)}
                 </div>
               )}
@@ -545,20 +570,17 @@ function SketchContent() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-col gap-4">
             <button
-              className="px-6 py-4 bg-blue-500 text-white rounded-xl font-semibold transition-all hover:bg-blue-600 hover:-translate-y-0.5 shadow-sm shadow-blue-500/30"
+              className="px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
               onClick={handleSubmitDrawing}
-              disabled={hasSubmitted || gameEnded}
+              disabled={hasSubmitted || gameEnded || isSubmitting}
             >
-              {hasSubmitted ? "Drawing Submitted" : "Submit Drawing"}
-            </button>
-            <button
-              className="px-6 py-4 bg-white text-red-500 border border-red-200 rounded-xl font-semibold transition-all hover:bg-red-500 hover:text-white hover:-translate-y-0.5"
-              disabled={gameEnded}
-            >
-              Abort Game
+              {isSubmitting
+                ? "Submitting..."
+                : hasSubmitted
+                ? "Drawing Submitted"
+                : "Submit Drawing"}
             </button>
           </div>
         </div>
