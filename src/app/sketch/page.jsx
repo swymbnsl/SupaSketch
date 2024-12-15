@@ -29,6 +29,9 @@ function SketchContent() {
   const [gameEnded, setGameEnded] = useState(false);
   const [prompt, setPrompt] = useState("");
   const { setGameStarted: setGameStartedContext } = useGameState();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReadying, setIsReadying] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
     // Function to validate room
@@ -281,6 +284,7 @@ function SketchContent() {
   };
 
   const handleReady = async () => {
+    setIsReadying(true);
     try {
       await axios.patch("/api/room", {
         room_id: roomId,
@@ -290,10 +294,13 @@ function SketchContent() {
       setIsReady(true);
     } catch (error) {
       console.error("Error updating ready status:", error);
+    } finally {
+      setIsReadying(false);
     }
   };
 
   const handleStart = async () => {
+    setIsStarting(true);
     try {
       const gameStartTime = new Date().toISOString();
 
@@ -310,6 +317,8 @@ function SketchContent() {
       setGameStartTime(new Date(gameStartTime));
     } catch (error) {
       console.error("Error starting game:", error);
+    } finally {
+      setIsStarting(false);
     }
   };
 
@@ -319,6 +328,7 @@ function SketchContent() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const shapeIds = editor.getCurrentPageShapeIds();
       if (shapeIds.size === 0) {
@@ -326,7 +336,6 @@ function SketchContent() {
         return;
       }
 
-      // Export canvas to blob
       const blob = await exportToBlob({
         editor,
         ids: [...shapeIds],
@@ -334,10 +343,8 @@ function SketchContent() {
         opts: { background: true },
       });
 
-      // Create file name with room ID and timestamp
       const fileName = `${roomId}_${Date.now()}.png`;
 
-      // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from("drawings")
         .upload(fileName, blob, {
@@ -346,12 +353,10 @@ function SketchContent() {
 
       if (error) throw error;
 
-      // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("drawings").getPublicUrl(fileName);
 
-      // Update database with image URL
       await axios.patch("/api/room", {
         room_id: roomId,
         sessionToken: sessionToken,
@@ -364,6 +369,8 @@ function SketchContent() {
     } catch (error) {
       console.error("Error submitting drawing:", error);
       customToast.error("Failed to submit drawing. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -469,10 +476,12 @@ function SketchContent() {
               <StatusIndicator />
               <button
                 className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={otherUserStatus !== "ready"}
+                disabled={otherUserStatus !== "ready" || isStarting}
                 onClick={handleStart}
               >
-                {otherUserStatus === "ready"
+                {isStarting
+                  ? "Starting Game..."
+                  : otherUserStatus === "ready"
                   ? "Start Game"
                   : "Waiting for player to join..."}
               </button>
@@ -483,9 +492,13 @@ function SketchContent() {
               <button
                 className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
                 onClick={handleReady}
-                disabled={isReady}
+                disabled={isReady || isReadying}
               >
-                {isReady ? "Ready!" : "Ready Up"}
+                {isReadying
+                  ? "Getting Ready..."
+                  : isReady
+                  ? "Ready!"
+                  : "Ready Up"}
               </button>
             </>
           )}
@@ -557,9 +570,13 @@ function SketchContent() {
             <button
               className="px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
               onClick={handleSubmitDrawing}
-              disabled={hasSubmitted || gameEnded}
+              disabled={hasSubmitted || gameEnded || isSubmitting}
             >
-              {hasSubmitted ? "Drawing Submitted" : "Submit Drawing"}
+              {isSubmitting
+                ? "Submitting..."
+                : hasSubmitted
+                ? "Drawing Submitted"
+                : "Submit Drawing"}
             </button>
           </div>
         </div>

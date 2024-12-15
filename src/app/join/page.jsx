@@ -14,6 +14,10 @@ import { customToast } from "@/utils/toast";
 export default function Join() {
   const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
+  const [isLoading, setIsLoading] = useState({
+    create: false,
+    join: false,
+  });
 
   useEffect(() => {
     const sessionToken = generateSessionToken();
@@ -21,6 +25,7 @@ export default function Join() {
   }, []);
 
   const handleCreateRoom = async () => {
+    setIsLoading({ ...isLoading, create: true });
     try {
       const response = await axios.post("/api/room", {
         sessionToken: getSessionToken(),
@@ -29,10 +34,13 @@ export default function Join() {
       router.push(`/sketch?roomCode=${response.data.room.room_code}`);
     } catch (error) {
       customToast.error(error.response.data.error);
+    } finally {
+      setIsLoading({ ...isLoading, create: false });
     }
   };
 
   const handleJoinRoom = async () => {
+    setIsLoading({ ...isLoading, join: true });
     try {
       const response = await axios.put("/api/room", {
         roomCode,
@@ -42,6 +50,8 @@ export default function Join() {
       router.push(`/sketch?roomCode=${roomCode}`);
     } catch (error) {
       customToast.error(error.response.data.error);
+    } finally {
+      setIsLoading({ ...isLoading, join: false });
     }
   };
 
@@ -72,9 +82,10 @@ export default function Join() {
             </div>
             <button
               onClick={handleCreateRoom}
-              className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all duration-300"
+              disabled={isLoading.create}
+              className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Room
+              {isLoading.create ? "Creating..." : "Create Room"}
             </button>
           </div>
 
@@ -99,14 +110,14 @@ export default function Join() {
               />
               <button
                 onClick={handleJoinRoom}
-                disabled={!roomCode}
+                disabled={!roomCode || isLoading.join}
                 className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  roomCode
+                  roomCode && !isLoading.join
                     ? "bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white hover:opacity-90"
                     : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
                 }`}
               >
-                Join Room
+                {isLoading.join ? "Joining..." : "Join Room"}
               </button>
             </div>
           </div>
