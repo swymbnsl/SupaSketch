@@ -280,8 +280,14 @@ export default function Home() {
 
       {/* Progress bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 transform-origin-0 z-50"
-        style={{ scaleX: scrollYProgress }}
+        className="fixed top-0 left-0 w-full h-1 z-[9999]"
+        style={{
+          scaleX: scrollYProgress,
+          transformOrigin: "center",
+          background:
+            "linear-gradient(to right, rgb(168, 85, 247), rgb(236, 72, 153))",
+          height: "4px",
+        }}
       />
     </div>
   );
