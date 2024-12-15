@@ -1,6 +1,6 @@
 # SupaSketch
 
-![alt text](image.png)
+![alt text](assets/image.png)
 
 <div align="center" >
 
@@ -87,7 +87,7 @@ Server will start at http://localhost:3000/
 This is where the user lands through https://supasketch.vercel.app.
 Click on any button to start joining a room
 
-![alt](https://github.com/expenboard/assets/image.png)
+![alt](assets/image.png)
 
 ### Join or Create room
 
@@ -96,25 +96,25 @@ Once you reach on /join, choose whether you want to create a room or join an exi
 <br>
 Now the room creator can share the room code with the other player
 
-![alt](https://github.com/expenboard/assets/image-1.png)
+![alt](assets/image-1.png)
 
 Once the other player is ready, player1 will be allowed to start the game
 
-![alt](https://github.com/expenboard/assets/image-2.png)
+![alt](assets/image-2.png)
 
-![alt](https://github.com/expenboard/assets/image-3.png)
+![alt](assets/image-3.png)
 
 ### Sketch and Compete
 
 Do your best to draw a fun drawing within the 2 minutes of time and emerge victorious!
 
-![alt](https://github.com/expenboard/assets/image-8.png)
+![alt](assets/image-8.png)
 
 ### Results
 
 After both the sketches are submitted, let AI decide who emerged victorious
 
-![alt](https://github.com/expenboard/assets/image-9.png)
+![alt](assets/image-9.png)
 
 ## Authors
 
