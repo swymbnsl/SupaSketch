@@ -9,6 +9,7 @@ import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import axios from "axios";
 import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
+import { useGameState } from "@/context/GameStateContext";
 
 function SketchContent() {
   const searchParams = useSearchParams();
@@ -27,6 +28,7 @@ function SketchContent() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [gameEnded, setGameEnded] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const { setGameStarted: setGameStartedContext } = useGameState();
 
   useEffect(() => {
     // Function to validate room
@@ -175,6 +177,7 @@ function SketchContent() {
           if (payload.new.game_started && payload.new.game_start_time) {
             setGameStartTime(new Date(payload.new.game_start_time));
             setGameStarted(true);
+            setGameStartedContext(true);
           }
 
           // Handle submissions
@@ -194,6 +197,7 @@ function SketchContent() {
           // Check if both players have submitted
           if (drawing1Submitted && drawing2Submitted) {
             setGameEnded(true);
+            setGameStartedContext(false);
             router.push(`/sketch/results?roomCode=${roomId}`);
           }
         }
@@ -217,6 +221,7 @@ function SketchContent() {
       if (remainingSeconds === 0) {
         clearInterval(timer);
         setGameEnded(true);
+        setGameStartedContext(false);
         // Auto-submit if haven't submitted yet and editor is available
         if (!hasSubmitted && editor) {
           handleAutoSubmit();
@@ -301,6 +306,7 @@ function SketchContent() {
       });
 
       setGameStarted(true);
+      setGameStartedContext(true);
       setGameStartTime(new Date(gameStartTime));
     } catch (error) {
       console.error("Error starting game:", error);

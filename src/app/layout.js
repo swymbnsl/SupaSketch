@@ -1,7 +1,8 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
-import AnimatedCursor from "react-animated-cursor";
+import CustomCursor from "@/components/CustomCursor";
+import { GameStateProvider } from "@/context/GameStateContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -22,27 +23,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AnimatedCursor
-          innerSize={8}
-          outerSize={35}
-          innerScale={1}
-          outerScale={2}
-          outerAlpha={0}
-          hasBlendMode={true}
-          innerStyle={{
-            backgroundColor: "var(--cursor-color)",
-          }}
-          outerStyle={{
-            border: "3px solid var(--cursor-color)",
-          }}
-        />
-        <Toaster />
-        {children}
-      </body>
+      <GameStateProvider>
+        <body
+          suppressHydrationWarning
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <CustomCursor />
+          <Toaster />
+          {children}
+        </body>
+      </GameStateProvider>
     </html>
   );
 }
