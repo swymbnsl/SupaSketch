@@ -87,6 +87,18 @@ body::-webkit-scrollbar-thumb {
   }
 }
 
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /*
  * Animation utility classes
  * ------------------------------------------------------------------------- */
@@ -104,6 +116,11 @@ body::-webkit-scrollbar-thumb {
 
 .animate-expand {
   animation: expand 0.8s ease-out forwards;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 15s ease infinite;
 }
 
 /*
