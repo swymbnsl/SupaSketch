@@ -8,6 +8,7 @@ import supabase from "@/lib/supabase";
 import { customToast } from "@/utils/toast";
 import { getSessionToken } from "@/utils/sessionTokenFunctions";
 import { playSound } from "@/utils/sound";
+import Link from "next/link";
 
 function ResultsContent() {
   const searchParams = useSearchParams();
