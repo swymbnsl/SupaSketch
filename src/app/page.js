@@ -11,7 +11,7 @@ import { playSound } from "@/utils/sound";
 
 export default function Home() {
   return (
-    <div className="h-screen bg-gradient-to-b from-black via-purple-950/10 to-black relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-black via-purple-950/10 to-black relative overflow-hidden">
       <Navbar />
       <ParticlesBackground />
 
@@ -19,7 +19,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-radial from-purple-500/5 via-transparent to-transparent" />
 
       {/* Main Content */}
-      <div className="relative z-10 h-full flex items-center justify-center px-6 max-w-7xl mx-auto">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-6 max-w-7xl mx-auto mt-20">
         <div className="text-center max-w-4xl relative">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
