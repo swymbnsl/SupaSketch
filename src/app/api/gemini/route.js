@@ -37,7 +37,7 @@ export async function POST(request) {
       // Get room data
       const { data: roomData } = await supabase
         .from("rooms")
-        .select("judgment, user1_id, user2_id, prompt")
+        .select("judgment, evaluation_status, user1_id, user2_id, prompt")
         .eq("room_code", roomId)
         .single();
 
@@ -45,6 +45,20 @@ export async function POST(request) {
       if (roomData?.judgment) {
         return Response.json(roomData.judgment);
       }
+
+      // If already processing, don't start another request
+      if (roomData?.evaluation_status === "processing") {
+        return Response.json(
+          { error: "Judgment is already being processed" },
+          { status: 409 }
+        );
+      }
+
+      // Set processing status immediately to prevent multiple requests
+      await supabase
+        .from("rooms")
+        .update({ evaluation_status: "processing" })
+        .eq("room_code", roomId);
 
       // If no judgment exists, proceed with generation
       const { drawing1Data, drawing2Data, prompt } = images;
@@ -70,9 +84,9 @@ export async function POST(request) {
       Rules:
       1. Text-only = FAIL
       2. Pick the better drawing
-      3. Give detailed, brutal roasts (7-8 lines)
+      3. Give detailed, brutal roasts (4-5 lines)
       
-      Be mean and detailed! Use simple English but make it long and brutal.
+      Be mean and detailed! Use simple English but make it harsh and funny.
       Give specific critiques about what's wrong with the drawing.
       Make fun of proportions, colors, effort, everything!
       
@@ -88,7 +102,7 @@ export async function POST(request) {
         "winner": "1" or "2",
         "critique1": "detailed comment about drawing 1 (2-3 lines)",
         "critique2": "detailed comment about drawing 2 (2-3 lines)", 
-        "roast": "long, brutal roast of the loser (7-8 lines)",
+        "roast": "short, brutal roast of the loser (4-5 lines)",
         "prompt": "what they were asked to draw"
       }`;
 
@@ -134,6 +148,7 @@ export async function POST(request) {
             judgment: judgment,
             winner_id:
               judgment.winner === "1" ? roomData.user1_id : roomData.user2_id,
+            evaluation_status: "completed"
           })
           .eq("room_code", roomId);
 
@@ -143,6 +158,12 @@ export async function POST(request) {
       } catch (error) {
         console.error("Error processing Gemini vision response:", error);
         
+        // Reset processing status on error
+        await supabase
+          .from("rooms")
+          .update({ evaluation_status: "pending" })
+          .eq("room_code", roomId);
+
         // Return appropriate error based on error type
         if (error.message === 'Gemini API timeout') {
           return Response.json(

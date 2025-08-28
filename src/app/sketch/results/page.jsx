@@ -99,7 +99,8 @@ function ResultsContent() {
             // Only the room creator should generate the judgment
             if (roomData.user1_id === sessionToken) {
               try {
-                const response = await axios.post("/api/gemini", {
+                // Start the judgment process (don't wait for response)
+                axios.post("/api/gemini", {
                   action: "judge_drawings",
                   images: {
                     drawing1Data,
@@ -108,67 +109,58 @@ function ResultsContent() {
                   },
                   roomId: roomId,
                 }, {
-                  timeout: 60000, // 60 second timeout
+                  timeout: 10000, // Short timeout just to start the process
                   headers: {
                     'Content-Type': 'application/json',
                   }
+                }).catch(error => {
+                  // Ignore timeout errors - the process will continue in background
+                  console.log("Started judgment process, waiting for results...");
                 });
 
-                setResults(response.data);
+                // Show processing message
+                customToast.success("AI is analyzing your masterpieces...");
               } catch (error) {
-                if (error.code === 'ECONNABORTED' || error.response?.status === 504 || error.response?.status === 502) {
-                  // Handle timeout/gateway errors
-                  console.log("API timeout, retrying...");
-                  customToast.error("Taking longer than expected. Please wait...");
-                  
-                  // Wait a bit before checking again
-                  setTimeout(() => {
-                    fetchResults();
-                  }, 5000);
-                  return;
-                } else {
-                  customToast.error(
-                    "Failed to get AI judgment. Please try refreshing."
-                  );
-                  console.error("Gemini API error:", error);
-                  setResults(null);
-                  return; // Exit early on actual errors
-                }
+                console.error("Error starting judgment process:", error);
               }
             } else {
-              // Non-creator users should wait for the judgment
-              const maxAttempts = 30;
-              let attempts = 0;
-
-              const waitForJudgment = async () => {
-                try {
-                  const { data: updatedRoom } = await supabase
-                    .from("rooms")
-                    .select("judgment")
-                    .eq("room_code", roomId)
-                    .single();
-
-                  if (updatedRoom.judgment) {
-                    setResults(updatedRoom.judgment);
-                  } else if (attempts < maxAttempts) {
-                    attempts++;
-                    setTimeout(waitForJudgment, 3000);
-                  } else {
-                    customToast.error(
-                      "Timeout waiting for results. Please refresh the page."
-                    );
-                  }
-                } catch (error) {
-                  console.error("Error checking for judgment:", error);
-                  if (attempts < maxAttempts) {
-                    attempts++;
-                    setTimeout(waitForJudgment, 3000);
-                  }
-                }
-              };
-
-              waitForJudgment();
+              // Non-creator shows waiting message
+              customToast.success("Waiting for AI to analyze the drawings...");
             }
+            
+            // Both creator and non-creator wait for results via real-time updates
+            const maxAttempts = 60; // 3 minutes total
+            let attempts = 0;
+
+            const waitForJudgment = async () => {
+              try {
+                const { data: updatedRoom } = await supabase
+                  .from("rooms")
+                  .select("judgment, evaluation_status")
+                  .eq("room_code", roomId)
+                  .single();
+
+                if (updatedRoom.judgment) {
+                  setResults(updatedRoom.judgment);
+                  playSound.success();
+                } else if (updatedRoom.evaluation_status === "pending" && attempts < maxAttempts) {
+                  attempts++;
+                  setTimeout(waitForJudgment, 3000);
+                } else if (attempts >= maxAttempts) {
+                  customToast.error(
+                    "AI is taking too long. Please refresh the page."
+                  );
+                }
+              } catch (error) {
+                console.error("Error checking for judgment:", error);
+                if (attempts < maxAttempts) {
+                  attempts++;
+                  setTimeout(waitForJudgment, 3000);
+                }
+              }
+            };
+
+            waitForJudgment();
           } else {
             // Use existing judgment from database
             setResults(roomData.judgment);
