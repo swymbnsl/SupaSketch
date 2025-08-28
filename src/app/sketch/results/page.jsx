@@ -98,31 +98,22 @@ function ResultsContent() {
           if (!roomData.judgment) {
             // Only the room creator should generate the judgment
             if (roomData.user1_id === sessionToken) {
-              try {
-                // Start the judgment process (don't wait for response)
-                axios.post("/api/gemini", {
-                  action: "judge_drawings",
-                  images: {
-                    drawing1Data,
-                    drawing2Data,
-                    prompt: roomData.prompt,
-                  },
-                  roomId: roomId,
-                }, {
-                  timeout: 10000, // Short timeout just to start the process
-                  headers: {
-                    'Content-Type': 'application/json',
-                  }
-                }).catch(error => {
-                  // Ignore timeout errors - the process will continue in background
-                  console.log("Started judgment process, waiting for results...");
-                });
-
-                // Show processing message
+              // Start the judgment process (fire and forget)
+              axios.post("/api/gemini", {
+                action: "judge_drawings",
+                images: {
+                  drawing1Data,
+                  drawing2Data,
+                  prompt: roomData.prompt,
+                },
+                roomId: roomId,
+              }).then(() => {
+                console.log("Started judgment process successfully");
                 customToast.success("AI is analyzing your masterpieces...");
-              } catch (error) {
-                console.error("Error starting judgment process:", error);
-              }
+              }).catch(error => {
+                console.log("Request sent, process continues in background");
+                customToast.success("AI is analyzing your masterpieces...");
+              });
             } else {
               // Non-creator shows waiting message
               customToast.success("Waiting for AI to analyze the drawings...");
