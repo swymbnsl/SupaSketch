@@ -10,7 +10,7 @@ const generateRoomCode = () =>
 
 // Helper function to generate prompt using Gemini
 async function generatePrompt() {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt =
     "Generate a funny and slightly sarcastic drawing prompt that two players need to draw. Make it challenging but possible to draw in 2 minutes. Format: just the prompt text, nothing else.";
 
@@ -35,7 +35,7 @@ export async function POST(request) {
     }
 
     // Generate prompt first
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const promptResult = await model.generateContent(
       "Create a fun and simple drawing prompt that players can draw in 2 minutes. Make it easy to understand and a bit funny. Just write the prompt itself, nothing else."
     );

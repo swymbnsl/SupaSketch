@@ -21,9 +21,9 @@ const safetySettings = [
 export async function POST(request) {
   try {
     const { action, images, roomId } = await request.json();
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const visionModel = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       safetySettings,
     });
 
@@ -38,15 +38,39 @@ export async function POST(request) {
     }
 
     if (action === "judge_drawings") {
-      // First check if judgment already exists
-      const { data: existingRoom } = await supabase
+      // Use atomic update to prevent race conditions
+      // First, try to claim the judgment generation by setting a processing flag
+      const { data: roomData, error: claimError } = await supabase
         .from("rooms")
-        .select("judgment")
+        .update({ evaluation_status: "processing" })
         .eq("room_code", roomId)
+        .eq("evaluation_status", "pending") // Only update if still pending
+        .select("judgment, user1_id, user2_id, prompt")
         .single();
 
-      if (existingRoom?.judgment) {
-        return Response.json(existingRoom.judgment);
+      // If update failed, judgment is already being processed or completed
+      if (claimError || !roomData) {
+        // Check if judgment already exists
+        const { data: existingRoom } = await supabase
+          .from("rooms")
+          .select("judgment")
+          .eq("room_code", roomId)
+          .single();
+
+        if (existingRoom?.judgment) {
+          return Response.json(existingRoom.judgment);
+        }
+        
+        // If no judgment but claim failed, another request is processing
+        return Response.json(
+          { error: "Judgment is being processed by another request" },
+          { status: 409 }
+        );
+      }
+
+      // If judgment already exists, return it
+      if (roomData.judgment) {
+        return Response.json(roomData.judgment);
       }
 
       // If no judgment exists, proceed with generation
@@ -112,22 +136,14 @@ export async function POST(request) {
             throw new Error("Failed to parse Gemini response as JSON");
           }
         }
-        // Get room data first
-        const { data: roomData, error: roomError } = await supabase
-          .from("rooms")
-          .select("user1_id, user2_id")
-          .eq("room_code", roomId)
-          .single();
-
-        if (roomError) throw roomError;
-
-        // Store judgment in the database
+        // Store judgment in the database and mark as completed
         const { error: updateError } = await supabase
           .from("rooms")
           .update({
             judgment: judgment,
             winner_id:
               judgment.winner === "1" ? roomData.user1_id : roomData.user2_id,
+            evaluation_status: "completed"
           })
           .eq("room_code", roomId);
 
@@ -136,6 +152,13 @@ export async function POST(request) {
         return Response.json(judgment);
       } catch (error) {
         console.error("Error processing Gemini vision response:", error);
+        
+        // Reset evaluation status on failure so it can be retried
+        await supabase
+          .from("rooms")
+          .update({ evaluation_status: "pending" })
+          .eq("room_code", roomId);
+          
         return Response.json(
           { error: "Failed to process images", details: error.message },
           { status: 500 }

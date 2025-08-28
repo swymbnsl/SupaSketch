@@ -98,7 +98,7 @@ function ResultsContent() {
           // src/app/sketch/results/page.jsx
 
           // In the fetchResults function
-          if (!roomData.judgment) {
+          if (!roomData.judgment && roomData.evaluation_status !== "processing") {
             // Only the room creator should generate the judgment
             if (roomData.user1_id === sessionToken) {
               try {
@@ -114,21 +114,28 @@ function ResultsContent() {
 
                 setResults(response.data);
               } catch (error) {
-                customToast.error(
-                  "Failed to get AI judgment. Please try refreshing."
-                );
-                console.error("Gemini API error:", error);
-                setResults(null);
+                // Handle 409 (judgment already being processed) gracefully
+                if (error.response?.status === 409) {
+                  console.log("Judgment already being processed, waiting...");
+                  // Fall through to the waiting logic below
+                } else {
+                  customToast.error(
+                    "Failed to get AI judgment. Please try refreshing."
+                  );
+                  console.error("Gemini API error:", error);
+                  setResults(null);
+                  return; // Exit early on actual errors
+                }
               }
             } else {
               // Non-creator users should wait for the judgment
-              const maxAttempts = 10;
+              const maxAttempts = 15; // Increased timeout
               let attempts = 0;
 
               const waitForJudgment = async () => {
                 const { data: updatedRoom } = await supabase
                   .from("rooms")
-                  .select("judgment")
+                  .select("judgment, evaluation_status")
                   .eq("room_code", roomId)
                   .single();
 
@@ -146,6 +153,34 @@ function ResultsContent() {
 
               waitForJudgment();
             }
+          } else if (roomData.evaluation_status === "processing") {
+            // If judgment is being processed, wait for it (for both creator and non-creator)
+            const maxAttempts = 15;
+            let attempts = 0;
+
+            const waitForProcessing = async () => {
+              const { data: updatedRoom } = await supabase
+                .from("rooms")
+                .select("judgment, evaluation_status")
+                .eq("room_code", roomId)
+                .single();
+
+              if (updatedRoom.judgment) {
+                setResults(updatedRoom.judgment);
+              } else if (updatedRoom.evaluation_status === "processing" && attempts < maxAttempts) {
+                attempts++;
+                setTimeout(waitForProcessing, 2000);
+              } else if (updatedRoom.evaluation_status === "pending") {
+                // Processing failed, retry the whole function
+                fetchResults();
+              } else {
+                customToast.error(
+                  "Timeout waiting for judgment processing. Please refresh."
+                );
+              }
+            };
+
+            waitForProcessing();
           } else {
             // Use existing judgment from database
             setResults(roomData.judgment);
