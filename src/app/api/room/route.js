@@ -1,27 +1,10 @@
 import supabase from "@/lib/supabase";
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+import { generateDrawingPrompt } from "@/utils/promptGenerator";
 
 // Helper function (consider moving to utilities)
 const generateRoomCode = () =>
   Math.random().toString(36).substring(2, 8).toUpperCase();
-
-// Helper function to generate prompt using Gemini
-async function generatePrompt() {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-  const prompt =
-    "Generate a funny and slightly sarcastic drawing prompt that two players need to draw. Make it challenging but possible to draw in 2 minutes. Format: just the prompt text, nothing else.";
-
-  try {
-    const result = await model.generateContent(prompt);
-    return result.response.text();
-  } catch (error) {
-    console.error("Error generating prompt:", error);
-    throw error;
-  }
-}
 
 // Create room
 export async function POST(request) {
@@ -35,11 +18,7 @@ export async function POST(request) {
     }
 
     // Generate prompt first
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-    const promptResult = await model.generateContent(
-      "Create a fun and simple drawing prompt that players can draw in 2 minutes. Make it easy to understand and a bit funny. Just write the prompt itself, nothing else."
-    );
-    const promptText = promptResult.response.text();
+    const promptText = await generateDrawingPrompt();
 
     const roomCode = generateRoomCode();
 

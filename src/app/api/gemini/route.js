@@ -4,6 +4,7 @@ import {
   HarmCategory,
 } from "@google/generative-ai";
 import supabase from "@/lib/supabase";
+import { generateDrawingPrompt } from "@/utils/promptGenerator";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -28,48 +29,20 @@ export async function POST(request) {
     });
 
     if (action === "generate_prompt") {
-      const prompt =
-        "Create a fun and very simple drawing prompt that players can draw in 2 minutes. Make it easy to understand and a bit funny. Just write the prompt itself, nothing else.";
-
-      const result = await model.generateContent(prompt);
-      const promptText = result.response.text();
-
+      const promptText = await generateDrawingPrompt();
       return Response.json({ prompt: promptText });
     }
 
     if (action === "judge_drawings") {
-      // Use atomic update to prevent race conditions
-      // First, try to claim the judgment generation by setting a processing flag
-      const { data: roomData, error: claimError } = await supabase
+      // Get room data
+      const { data: roomData } = await supabase
         .from("rooms")
-        .update({ evaluation_status: "processing" })
-        .eq("room_code", roomId)
-        .eq("evaluation_status", "pending") // Only update if still pending
         .select("judgment, user1_id, user2_id, prompt")
+        .eq("room_code", roomId)
         .single();
 
-      // If update failed, judgment is already being processed or completed
-      if (claimError || !roomData) {
-        // Check if judgment already exists
-        const { data: existingRoom } = await supabase
-          .from("rooms")
-          .select("judgment")
-          .eq("room_code", roomId)
-          .single();
-
-        if (existingRoom?.judgment) {
-          return Response.json(existingRoom.judgment);
-        }
-        
-        // If no judgment but claim failed, another request is processing
-        return Response.json(
-          { error: "Judgment is being processed by another request" },
-          { status: 409 }
-        );
-      }
-
       // If judgment already exists, return it
-      if (roomData.judgment) {
+      if (roomData?.judgment) {
         return Response.json(roomData.judgment);
       }
 
@@ -92,35 +65,48 @@ export async function POST(request) {
         },
       };
 
-      const promptText = `You're a friendly art judge looking at drawings from a 2-minute drawing game. 
-      The players were asked to draw: "${images.prompt}"
+      const promptText = `You're a savage art critic judging 2-minute drawings. The prompt was: "${images.prompt}"
       
-      Important judging rules:
-      1. Text-only submissions should not be considered valid drawings
-      2. Simple stick figures and basic drawings are okay - this is a quick drawing game
-      3. The drawing should attempt to illustrate the prompt, not just write it
-      4. If both submissions are text-only, declare a draw
+      Rules:
+      1. Text-only = FAIL
+      2. Pick the better drawing
+      3. Give detailed, brutal roasts (7-8 lines)
       
-      Please:
-      1. Pick which drawing better matches the prompt and shows more effort in actually drawing
-      2. Give a specific comment about what you see in each drawing
-      3. Make a playful joke about the losing drawing, especially if it's just text instead of a drawing
+      Be mean and detailed! Use simple English but make it long and brutal.
+      Give specific critiques about what's wrong with the drawing.
+      Make fun of proportions, colors, effort, everything!
       
-      Write your response as JSON like this:
+      Examples of what to roast:
+      - "This looks like a 3-year-old drew it with their eyes closed"
+      - "Did you use your feet? Even my cat draws better than this"
+      - "I've seen better art on bathroom walls"
+      - "This is what happens when you give a monkey a crayon"
+      - "Your artistic skills are worse than a broken printer"
+      
+      Write JSON like this:
       {
         "winner": "1" or "2",
-        "critique1": "your comment about what drawing 1 actually shows",
-        "critique2": "your comment about what drawing 2 actually shows",
-        "roast": "your friendly joke about the losing drawing",
+        "critique1": "detailed comment about drawing 1 (2-3 lines)",
+        "critique2": "detailed comment about drawing 2 (2-3 lines)", 
+        "roast": "long, brutal roast of the loser (7-8 lines)",
         "prompt": "what they were asked to draw"
       }`;
 
       try {
-        const result = await visionModel.generateContent([
-          promptText,
-          image1,
-          image2,
+        // Add timeout wrapper for Gemini API call
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Gemini API timeout')), 45000); // 45 second timeout
+        });
+
+        const result = await Promise.race([
+          visionModel.generateContent([
+            promptText,
+            image1,
+            image2,
+          ]),
+          timeoutPromise
         ]);
+        
         const jsonString = result.response.text();
         let judgment;
 
@@ -136,14 +122,18 @@ export async function POST(request) {
             throw new Error("Failed to parse Gemini response as JSON");
           }
         }
-        // Store judgment in the database and mark as completed
+
+        // Validate judgment structure
+        if (!judgment.winner || !judgment.critique1 || !judgment.critique2 || !judgment.roast) {
+          throw new Error("Invalid judgment structure from Gemini");
+        }
+        // Store judgment in the database
         const { error: updateError } = await supabase
           .from("rooms")
           .update({
             judgment: judgment,
             winner_id:
               judgment.winner === "1" ? roomData.user1_id : roomData.user2_id,
-            evaluation_status: "completed"
           })
           .eq("room_code", roomId);
 
@@ -153,16 +143,23 @@ export async function POST(request) {
       } catch (error) {
         console.error("Error processing Gemini vision response:", error);
         
-        // Reset evaluation status on failure so it can be retried
-        await supabase
-          .from("rooms")
-          .update({ evaluation_status: "pending" })
-          .eq("room_code", roomId);
-          
-        return Response.json(
-          { error: "Failed to process images", details: error.message },
-          { status: 500 }
-        );
+        // Return appropriate error based on error type
+        if (error.message === 'Gemini API timeout') {
+          return Response.json(
+            { error: "Request timeout", details: "AI processing took too long. Please try again." },
+            { status: 504 }
+          );
+        } else if (error.message.includes('Invalid judgment structure')) {
+          return Response.json(
+            { error: "AI response error", details: "AI provided invalid response format. Please try again." },
+            { status: 503 }
+          );
+        } else {
+          return Response.json(
+            { error: "Failed to process images", details: error.message },
+            { status: 500 }
+          );
+        }
       }
     }
 
