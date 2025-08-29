@@ -28,7 +28,7 @@ export default function Home() {
           >
             {/* Title with enhanced styling */}
             <div className="relative mb-8">
-              <h1 className="text-7xl md:text-9xl font-bold tracking-tight">
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold tracking-tight">
                 <span className="relative inline-block text-transparent bg-gradient-to-br from-purple-400 via-pink-500 to-purple-600 bg-clip-text animate-gradient-x">
                   Sketch &
                   <br />
@@ -39,7 +39,7 @@ export default function Home() {
             </div>
 
             {/* Subtitle with improved contrast */}
-            <p className="text-xl md:text-2xl text-gray-200 mb-12 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-8 sm:mb-10 md:mb-12 leading-relaxed max-w-2xl mx-auto px-4">
               Create private rooms, invite friends, and let AI judge your
               artistic showdowns in real-time drawing competitions
             </p>
@@ -48,14 +48,14 @@ export default function Home() {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="mb-16"
+              className="mb-12 sm:mb-14 md:mb-16 relative z-30 px-4"
             >
               <Link
                 onClick={() => playSound.button()}
                 href="/join"
-                className="inline-block bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 px-12 py-5 rounded-full text-xl font-bold transition-all
+                className="inline-block bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 px-8 sm:px-10 md:px-12 py-4 sm:py-5 rounded-full text-lg sm:text-xl font-bold transition-all
                 shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.8)]
-                border border-purple-500/20 backdrop-blur-sm"
+                border border-purple-500/20 backdrop-blur-sm relative z-30 w-full sm:w-auto"
               >
                 Create a Room
               </Link>
@@ -66,15 +66,15 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
-              className="flex flex-wrap justify-center gap-4 mb-16 relative z-20"
+              className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12 sm:mb-14 md:mb-16 relative z-25 px-4"
             >
               {[
-                { icon: <Users className="w-6 h-6" />, text: "Private Rooms" },
+                { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, text: "Private Rooms" },
                 {
-                  icon: <Paintbrush className="w-6 h-6" />,
+                  icon: <Paintbrush className="w-5 h-5 sm:w-6 sm:h-6" />,
                   text: "Real-time Drawing",
                 },
-                { icon: <Bot className="w-6 h-6" />, text: "AI Judging" },
+                { icon: <Bot className="w-5 h-5 sm:w-6 sm:h-6" />, text: "AI Judging" },
               ].map((feature, index) => (
                 <motion.div
                   key={index}
@@ -82,8 +82,8 @@ export default function Home() {
                     scale: 1.05,
                     backgroundColor: "rgba(255, 255, 255, 0.1)",
                   }}
-                  className="bg-white/5 backdrop-blur-sm px-6 py-4 rounded-2xl text-gray-200 flex items-center gap-3 
-                  shadow-lg transition-all border border-white/10 hover:border-purple-500/50"
+                  className="bg-white/5 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 rounded-2xl text-gray-200 flex items-center justify-center gap-2 sm:gap-3 
+                  shadow-lg transition-all border border-white/10 hover:border-purple-500/50 text-sm sm:text-base min-w-[140px] sm:min-w-[160px] flex-1 max-w-[200px]"
                 >
                   {feature.icon}
                   <span className="font-medium">{feature.text}</span>
@@ -96,16 +96,16 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="flex items-center justify-center gap-3"
+              className="flex items-center justify-center gap-2 sm:gap-3 px-4"
             >
-              <span className="text-gray-400">Powered by</span>
+              <span className="text-gray-400 text-sm sm:text-base">Powered by</span>
               <div className="relative group">
                 <Image
                   src="supabase-logo-wordmark--dark.svg"
                   alt="Supabase"
                   width={120}
                   height={24}
-                  className="relative z-10 opacity-75 group-hover:opacity-100 transition-opacity"
+                  className="relative z-10 opacity-75 group-hover:opacity-100 transition-opacity w-20 sm:w-24 md:w-28 lg:w-32"
                 />
                 <div className="absolute inset-0 bg-emerald-500/10 blur-xl group-hover:bg-emerald-500/20 transition-all duration-300" />
               </div>
@@ -123,7 +123,7 @@ export default function Home() {
             y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
             rotate: { duration: 20, repeat: Infinity, ease: "linear" },
           }}
-          className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-[100px]"
+          className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-[100px] z-0"
         />
         <motion.div
           animate={{
@@ -134,7 +134,7 @@ export default function Home() {
             y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
             rotate: { duration: 15, repeat: Infinity, ease: "linear" },
           }}
-          className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-full blur-[100px]"
+          className="absolute bottom-1/4 left-1/4 w-72 h-72 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-full blur-[100px] z-0"
         />
       </div>
     </div>

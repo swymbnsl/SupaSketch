@@ -386,10 +386,10 @@ function SketchContent() {
 
   // Update status display in the UI
   const StatusIndicator = () => (
-    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-red-500/10 border border-purple-500/20 px-4 py-2 rounded-full">
-      <span className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-pulse"></span>
-        <span className="text-sm font-medium text-white">
+    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-red-500/10 border border-purple-500/20 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+      <span className="flex items-center gap-1.5 sm:gap-2">
+        <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 animate-pulse"></span>
+        <span className="text-xs sm:text-sm font-medium text-white">
           Player 2: {otherUserStatus || "Waiting..."}
         </span>
       </span>
@@ -398,12 +398,12 @@ function SketchContent() {
 
   if (isValidRoom === null) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white px-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mb-4"></div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent text-center">
           Loading Room
         </h1>
-        <p className="text-gray-400">
+        <p className="text-gray-400 text-center text-sm sm:text-base">
           Please wait while we validate your room...
         </p>
       </div>
@@ -412,11 +412,11 @@ function SketchContent() {
 
   if (isValidRoom === false) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white px-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent text-center">
           Invalid Room
         </h1>
-        <p className="text-gray-400">
+        <p className="text-gray-400 text-center text-sm sm:text-base">
           Please check your room code and try again
         </p>
       </div>
@@ -426,18 +426,18 @@ function SketchContent() {
   if (!gameStarted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4">
-        <div className="p-6 md:p-8 bg-[#1a1a1a] rounded-xl border border-gray-800 max-w-md w-full">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent">
+        <div className="p-4 sm:p-6 md:p-8 bg-[#1a1a1a] rounded-xl border border-gray-800 max-w-md w-full mx-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 bg-clip-text text-transparent text-center">
             Waiting Room
           </h2>
 
           {isCreator ? (
             <>
-              <div className="mb-6 space-y-4">
-                <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
-                  <p className="text-sm text-gray-400 mb-2">Your Room Code:</p>
+              <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
+                <div className="bg-[#2a2a2a] p-3 sm:p-4 rounded-lg border border-gray-700">
+                  <p className="text-xs sm:text-sm text-gray-400 mb-2">Your Room Code:</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-2xl font-mono font-bold text-purple-400 tracking-wide">
+                    <code className="text-lg sm:text-xl md:text-2xl font-mono font-bold text-purple-400 tracking-wide">
                       {roomId}
                     </code>
                     <button
@@ -445,19 +445,19 @@ function SketchContent() {
                         navigator.clipboard.writeText(roomId);
                         customToast.success("Room code copied!");
                       }}
-                      className="p-2 hover:bg-violet-100 rounded-md transition-colors"
+                      className="p-1.5 sm:p-2 hover:bg-violet-100 rounded-md transition-colors"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
+                        width="14"
+                        height="14"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="text-violet-600"
+                        className="text-violet-600 sm:w-4 sm:h-4"
                       >
                         <rect
                           width="14"
@@ -473,15 +473,15 @@ function SketchContent() {
                   </div>
                 </div>
 
-                <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
-                  <h3 className="font-semibold text-purple-400 mb-2">
+                <div className="bg-[#2a2a2a] p-3 sm:p-4 rounded-lg border border-gray-700">
+                  <h3 className="font-semibold text-purple-400 mb-2 text-sm sm:text-base">
                     Invite Your Friend
                   </h3>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-xs sm:text-sm text-blue-600">
                     Share this code with a friend to start the drawing battle!
                     They&apos;ll need to:
                   </p>
-                  <ol className="mt-2 text-sm text-blue-600 list-decimal list-inside space-y-1">
+                  <ol className="mt-2 text-xs sm:text-sm text-blue-600 list-decimal list-inside space-y-1">
                     <li>Visit SupaSketch</li>
                     <li>Click &quot;Join Room&quot;</li>
                     <li>
@@ -493,7 +493,7 @@ function SketchContent() {
 
               <StatusIndicator />
               <button
-                className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-4 sm:mt-6 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 disabled={otherUserStatus !== "ready" || isStarting}
                 onClick={handleStart}
               >
@@ -508,7 +508,7 @@ function SketchContent() {
             <>
               <StatusIndicator />
               <button
-                className="w-full mt-6 px-6 py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+                className="w-full mt-4 sm:mt-6 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 text-sm sm:text-base"
                 onClick={handleReady}
                 disabled={isReady || isReadying}
               >
@@ -526,16 +526,16 @@ function SketchContent() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen bg-[#0a0a0a]">
-      <h1 className="text-lg md:text-2xl font-bold mb-4 md:mb-7 text-white flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-        <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 px-3 py-1.5 rounded-lg text-sm font-medium w-fit">
+    <div className="p-2 sm:p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen bg-[#0a0a0a]">
+      <h1 className="text-base sm:text-lg md:text-2xl font-bold mb-3 sm:mb-4 md:mb-7 text-white flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+        <span className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium w-fit">
           Prompt
         </span>
-        <span className="text-sm md:text-base">Draw: &quot;{prompt || "Loading prompt..."}&quot;</span>
+        <span className="text-xs sm:text-sm md:text-base">Draw: &quot;{prompt || "Loading prompt..."}&quot;</span>
       </h1>
 
-      <div className="flex flex-col lg:flex-row gap-4 md:gap-7 h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]">
-        <div className="w-full lg:flex-[0_0_65%] h-[50vh] lg:h-full relative border border-gray-800 rounded-xl overflow-hidden bg-[#1a1a1a]">
+      <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 md:gap-7 h-[calc(100vh-120px)] sm:h-[calc(100vh-130px)] md:h-[calc(100vh-120px)]">
+        <div className="w-full lg:flex-[0_0_65%] h-[40vh] sm:h-[45vh] md:h-[50vh] lg:h-full relative border border-gray-800 rounded-xl overflow-hidden bg-[#1a1a1a]">
           <Tldraw
             inferDarkMode
             acceptedImageMimeTypes={[]}
@@ -553,30 +553,30 @@ function SketchContent() {
           />
         </div>
 
-        <div className="w-full lg:flex-[0_0_35%] flex flex-col gap-4 md:gap-6 h-auto lg:h-full lg:overflow-y-auto">
-          <div className="p-4 md:p-6 bg-[#1a1a1a] rounded-xl border border-gray-800">
-            <div className="text-base md:text-lg font-semibold mb-3 md:mb-5 text-white flex items-center gap-2">
+        <div className="w-full lg:flex-[0_0_35%] flex flex-col gap-3 sm:gap-4 md:gap-6 h-auto lg:h-full lg:overflow-y-auto">
+          <div className="p-3 sm:p-4 md:p-6 bg-[#1a1a1a] rounded-xl border border-gray-800">
+            <div className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-5 text-white flex items-center gap-2">
               <span className="text-blue-500">●</span> Game Status
             </div>
-            <div className="flex flex-col gap-3 md:gap-4">
+            <div className="flex flex-col gap-2 sm:gap-3 md:gap-4">
               {gameEnded ? (
-                <div className="text-xl md:text-2xl font-semibold text-red-500">
+                <div className="text-lg sm:text-xl md:text-2xl font-semibold text-red-500">
                   Game Ended!
                 </div>
               ) : (
-                <div className="text-xl md:text-2xl font-semibold text-white">
+                <div className="text-lg sm:text-xl md:text-2xl font-semibold text-white">
                   {formatTime(timeLeft)}
                 </div>
               )}
               <StatusIndicator />
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1 sm:gap-2">
                 {hasSubmitted && (
-                  <div className="text-green-500 font-medium text-sm md:text-base">
+                  <div className="text-green-500 font-medium text-xs sm:text-sm md:text-base">
                     ✓ You have submitted your drawing
                   </div>
                 )}
                 {otherPlayerSubmitted && (
-                  <div className="text-blue-500 font-medium text-sm md:text-base">
+                  <div className="text-blue-500 font-medium text-xs sm:text-sm md:text-base">
                     ✓ Other player has submitted their drawing
                   </div>
                 )}
@@ -584,9 +584,9 @@ function SketchContent() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <button
-              className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 text-sm md:text-base"
+              className="px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white rounded-xl font-semibold transition-all hover:opacity-90 disabled:opacity-50 text-xs sm:text-sm md:text-base"
               onClick={handleSubmitDrawing}
               disabled={hasSubmitted || gameEnded || isSubmitting}
             >

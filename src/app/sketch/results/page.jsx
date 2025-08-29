@@ -178,11 +178,11 @@ function ResultsContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mb-6"></div>
-        <div className="text-2xl md:text-3xl font-semibold text-violet-400 mb-4 text-center">
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-violet-500 mb-4 sm:mb-6"></div>
+        <div className="text-xl sm:text-2xl md:text-3xl font-semibold text-violet-400 mb-3 sm:mb-4 text-center">
           Judging masterpieces...
         </div>
-        <div className="text-sm md:text-base text-gray-400 text-center max-w-md">
+        <div className="text-xs sm:text-sm md:text-base text-gray-400 text-center max-w-md px-4">
           Our AI critic is analyzing the artistic genius (or lack thereof). This may take up to a minute.
         </div>
       </div>
@@ -192,28 +192,28 @@ function ResultsContent() {
   if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="text-center max-w-lg">
-          <div className="text-6xl mb-4">😵</div>
-          <div className="text-xl md:text-2xl text-red-400 mb-4">
+        <div className="text-center max-w-lg mx-4">
+          <div className="text-4xl sm:text-5xl md:text-6xl mb-4">😵</div>
+          <div className="text-lg sm:text-xl md:text-2xl text-red-400 mb-4">
             Oops! Something went wrong.
           </div>
-          <p className="text-sm md:text-base text-gray-400 mb-6">
+          <p className="text-xs sm:text-sm md:text-base text-gray-400 mb-6">
             The AI judge might be having a bad day, or the processing took too long. 
           </p>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <button
               onClick={() => {
                 setError(null);
                 setLoading(true);
                 window.location.reload();
               }}
-              className="px-6 py-3 bg-gradient-to-r from-violet-600 to-pink-600 text-white rounded-xl font-semibold hover:from-violet-500 hover:to-pink-500 transition-all duration-200"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-violet-600 to-pink-600 text-white rounded-xl font-semibold hover:from-violet-500 hover:to-pink-500 transition-all duration-200 text-sm sm:text-base"
             >
               Try Again
             </button>
             <Link
               href="/join"
-              className="block px-6 py-3 bg-gray-800 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all duration-200"
+              className="block w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-800 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all duration-200 text-sm sm:text-base"
             >
               Start New Game
             </Link>
@@ -225,8 +225,8 @@ function ResultsContent() {
 
   if (!results) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-2xl text-amber-400">
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-lg sm:text-xl md:text-2xl text-amber-400 text-center">
           Waiting for all drawings to be submitted...
         </div>
       </div>
@@ -234,66 +234,66 @@ function ResultsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black p-4 md:p-8 max-w-7xl mx-auto text-white">
-      <h1 className="text-3xl md:text-5xl font-bold mb-6 md:mb-8 text-center bg-gradient-to-r from-violet-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
+    <div className="min-h-screen bg-black p-3 sm:p-4 md:p-8 max-w-7xl mx-auto text-white">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 md:mb-8 text-center bg-gradient-to-r from-violet-500 via-pink-500 to-red-500 text-transparent bg-clip-text">
         The Results Are In!
       </h1>
 
-      <div className="text-lg md:text-2xl text-center mb-6 md:mb-8 text-gray-300 px-4">
+      <div className="text-base sm:text-lg md:text-xl lg:text-2xl text-center mb-4 sm:mb-6 md:mb-8 text-gray-300 px-4">
         Prompt: &quot;{results?.prompt || "Loading prompt..."}&quot;
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-6 md:gap-8">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 md:gap-8">
         {/* Left side - Drawings */}
-        <div className="w-full xl:w-2/3 flex flex-col md:flex-row gap-6 md:gap-8">
+        <div className="w-full xl:w-2/3 flex flex-col md:flex-row gap-4 sm:gap-6 md:gap-8">
           {/* Drawing 1 */}
-          <div className="flex-1 bg-gray-900 p-4 md:p-6 rounded-xl border border-violet-500/30">
-            <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-violet-400">
+          <div className="flex-1 bg-gray-900 p-3 sm:p-4 md:p-6 rounded-xl border border-violet-500/30">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 sm:mb-3 md:mb-4 text-violet-400">
               Drawing 1
             </h2>
             {drawing1Url && (
               <img
                 src={drawing1Url}
                 alt="Drawing 1"
-                className="w-full rounded-lg mb-3 md:mb-4 border border-violet-500/30"
+                className="w-full rounded-lg mb-2 sm:mb-3 md:mb-4 border border-violet-500/30"
               />
             )}
-            <p className="text-gray-300 text-sm md:text-base">{results.critique1}</p>
+            <p className="text-gray-300 text-xs sm:text-sm md:text-base">{results.critique1}</p>
           </div>
 
           {/* Drawing 2 */}
-          <div className="flex-1 bg-gray-900 p-4 md:p-6 rounded-xl border border-violet-500/30">
-            <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-violet-400">
+          <div className="flex-1 bg-gray-900 p-3 sm:p-4 md:p-6 rounded-xl border border-violet-500/30">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-2 sm:mb-3 md:mb-4 text-violet-400">
               Drawing 2
             </h2>
             {drawing2Url && (
               <img
                 src={drawing2Url}
                 alt="Drawing 2"
-                className="w-full rounded-lg mb-3 md:mb-4 border border-violet-500/30"
+                className="w-full rounded-lg mb-2 sm:mb-3 md:mb-4 border border-violet-500/30"
               />
             )}
-            <p className="text-gray-300 text-sm md:text-base">{results.critique2}</p>
+            <p className="text-gray-300 text-xs sm:text-sm md:text-base">{results.critique2}</p>
           </div>
         </div>
 
         {/* Right side - Results and Button */}
         <div className="w-full xl:w-1/3">
-          <div className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 p-4 md:p-6 rounded-xl border border-violet-500/30 h-full flex flex-col justify-between">
+          <div className="bg-gradient-to-r from-violet-900/50 to-pink-900/50 p-3 sm:p-4 md:p-6 rounded-xl border border-violet-500/30 h-full flex flex-col justify-between">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-violet-400 to-pink-400 text-transparent bg-clip-text">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 md:mb-4 bg-gradient-to-r from-violet-400 to-pink-400 text-transparent bg-clip-text">
                 Winner: Drawing {results.winner}
               </h2>
-              <div className="text-violet-300 font-medium italic text-lg md:text-xl">
+              <div className="text-violet-300 font-medium italic text-base sm:text-lg md:text-xl">
                 &quot;{results.roast}&quot;
               </div>
             </div>
 
-            <div className="mt-6 md:mt-auto md:pt-8">
+            <div className="mt-4 sm:mt-6 md:mt-auto md:pt-8">
               <Link
                 href="/join"
                 onClick={() => playSound.button()}
-                className="block px-6 md:px-8 py-3 md:py-4 text-lg md:text-xl font-semibold rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-500 hover:to-pink-500 transition-all duration-200 shadow-lg hover:shadow-violet-500/25 text-center"
+                className="block px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-base sm:text-lg md:text-xl font-semibold rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white hover:from-violet-500 hover:to-pink-500 transition-all duration-200 shadow-lg hover:shadow-violet-500/25 text-center"
               >
                 Start New Game
               </Link>
